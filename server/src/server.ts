@@ -1,5 +1,6 @@
 import Express from "express";
 import routerCliente from "./router/routerCliente";
+import routerLoginClientes from "./router/routerLoginClientes";
 import db from './config/db';
 
 const server = Express();
@@ -8,6 +9,7 @@ server.use(Express.json());
 server.use(Express.urlencoded({ extended: true }));
 
 server.use('/api/clientes', routerCliente);
+server.use('/api/login', routerLoginClientes);
 
 async function connectDB() {
     try {
