@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { createClient, getClients, getClientById, updateClient, deleteClient } from '../controllers/clienteController';
+import { createClient, getClients, getClientById, updateClient, /*deleteClient*/ } from '../controllers/clienteController';
 import { body, param } from 'express-validator';
 import { inputErrors } from '../middleware';
 
@@ -72,8 +72,8 @@ router.put('/:id',
         .isLength({ max: 8 }).withMessage('El estado no puede exceder los 8 caracteres'),
     inputErrors, updateClient);
 
-router.delete('/:id',
-    param('id').isNumeric().withMessage('El ID ingresado no es válido'),
-    inputErrors, deleteClient);
+// router.delete('/:id',
+//     param('id').isNumeric().withMessage('El ID ingresado no es válido'),
+//     inputErrors, deleteClient);
 
 export default router;
