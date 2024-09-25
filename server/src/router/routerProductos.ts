@@ -13,7 +13,7 @@ router.get('/:id',
 
 router.put('/:id',
     param('id').isNumeric().withMessage('El ID ingresado no es válido'),
-);
+    inputErrors, updateProducto);
 
 
 export default router;
