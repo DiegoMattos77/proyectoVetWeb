@@ -5,7 +5,7 @@ import { Table, Column, DataType, Model, Default } from 'sequelize-typescript';
     timestamps: false
 })
 
-class cliente extends Model {
+class Cliente extends Model {
     @Column({
         type: DataType.INTEGER,
         allowNull: false,
@@ -64,4 +64,4 @@ class cliente extends Model {
     estado: string;
 }
 
-export default cliente;
+export default Cliente;
