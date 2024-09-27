@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { createClient, getClients, getClientById, updateClient, deleteClient } from '../controllers/loginClientesController';
+import { createClient, getClients, getClientById, updateClient } from '../controllers/loginClientesController';
 import { body, param } from 'express-validator';
 import { inputErrors } from '../middleware';
 
@@ -36,10 +36,10 @@ router.put('/:id',
     inputErrors, updateClient
 );
 
-router.delete('/:id',
-    param('id').isNumeric().withMessage('El ID ingresado no es válido'),
-    inputErrors, deleteClient
-);
+// router.delete('/:id',
+//     param('id').isNumeric().withMessage('El ID ingresado no es válido'),
+//     inputErrors, deleteClient
+// );
 
 export default router;
 

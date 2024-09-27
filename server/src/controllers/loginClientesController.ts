@@ -52,18 +52,18 @@ export const updateClient = async (req: Request, res: Response) => {
 };
 
 //Elimino un cliente
-export const deleteClient = async (req: Request, res: Response) => {
-    try {
-        const deleted = await LoginCliente.destroy({
-            where: { id_clientes: req.params.id }
-        });
-        if (deleted) {
-            res.status(204).send();
-        } else {
-            res.status(404).json({ error: "No se encontraron clientes para eliminar" });
-        }
-    } catch (error) {
-        res.status(500).json({ error: error.messaje });
-    }
-};
+// export const deleteClient = async (req: Request, res: Response) => {
+//     try {
+//         const deleted = await LoginCliente.destroy({
+//             where: { id_clientes: req.params.id }
+//         });
+//         if (deleted) {
+//             res.status(204).send();
+//         } else {
+//             res.status(404).json({ error: "No se encontraron clientes para eliminar" });
+//         }
+//     } catch (error) {
+//         res.status(500).json({ error: error.messaje });
+//     }
+// };
 

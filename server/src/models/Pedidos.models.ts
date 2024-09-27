@@ -28,11 +28,11 @@ class pedidos extends Model {
     id_cliente: number;
 
     @Column({
-        type: DataType.STRING,
+        type: DataType.INTEGER,
         allowNull: false,
         defaultValue: 4
     })
-    id_empleado: number;
+    id_empleados: number;
 
     @Column({
         type: DataType.DATE,
