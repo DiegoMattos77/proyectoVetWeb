@@ -3,6 +3,7 @@ import routerCliente from "./router/routerCliente";
 import routerLoginClientes from "./router/routerLoginClientes";
 import routerProductos from "./router/routerProductos";
 import routerPedidos from "./router/routerPedidos";
+import routerDetallePedidos from "./router/routerDetallePedidos";
 import db from './config/db';
 
 const server = Express();
@@ -14,7 +15,7 @@ server.use('/api/clientes', routerCliente);
 server.use('/api/login', routerLoginClientes);
 server.use('/api/productos', routerProductos);
 server.use('/api/pedidos', routerPedidos);
-
+server.use('/api/detalle', routerDetallePedidos);
 
 async function connectDB() {
     try {

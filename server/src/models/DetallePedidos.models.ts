@@ -1,4 +1,4 @@
-import { Table, Column, DataType, Model, ForeignKey, BelongsTo } from 'sequelize-typescript';
+import { Table, Column, DataType, Model, ForeignKey, BelongsTo, PrimaryKey } from 'sequelize-typescript';
 import Productos from './Productos.models';
 import Pedidos from './Pedidos.models';
 
@@ -6,20 +6,23 @@ import Pedidos from './Pedidos.models';
     tableName: 'detalle_pedidos',
     timestamps: false
 })
-
 class DetallePedidos extends Model {
 
+    @PrimaryKey
     @ForeignKey(() => Pedidos)
     @Column({
         type: DataType.INTEGER,
-        allowNull: false
+        allowNull: false,
+        autoIncrement: false
     })
     id_pedido: number;
 
+    @PrimaryKey
     @ForeignKey(() => Productos)
     @Column({
         type: DataType.INTEGER,
-        allowNull: false
+        allowNull: false,
+        autoIncrement: false
     })
     id_producto: number;
 

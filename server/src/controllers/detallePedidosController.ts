@@ -12,15 +12,31 @@ export const createDetallePedido = async (req: Request, res: Response) => {
     }
 };
 
-//get detalles
-// export const getDetallePedido = async (_: Request, res: Response) => {
+//Actualizo un detalle de pedido
+// export const updateDetallePedido = async (req: Request, res: Response) => {
 //     try {
-//         const detalle = await DetallePedidos.findAll();
-//         res.status(200).json(detalle);
+//         const detalle = await DetallePedidos.findByPk(req.params.id);
+//         if (detalle) {
+//             await detalle.update(req.body);
+//             res.status(200).json(detalle);
+//         } else {
+//             res.status(404).json({ error: "No se encontraron detalles para modificar" });
+//         }
 //     } catch (error) {
-//         res.status(500).json({ error: error.message });
+//         res.status(500).json({ error: error.messaje });
 //     }
 // };
+
+
+//get detalles
+export const getDetallePedido = async (req: Request, res: Response) => {
+    try {
+        const detalle = await DetallePedidos.findAll();
+        res.status(200).json(detalle);
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+};
 
 //detalle por id
 // export const getClientById = async (req: Request, res: Response) => {
