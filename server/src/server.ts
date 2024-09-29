@@ -5,6 +5,7 @@ import routerProductos from "./router/routerProductos";
 import routerPedidos from "./router/routerPedidos";
 import routerDetallePedidos from "./router/routerDetallePedidos";
 import db from './config/db';
+import cors from 'cors';
 
 const server = Express();
 
@@ -16,6 +17,12 @@ server.use('/api/login', routerLoginClientes);
 server.use('/api/productos', routerProductos);
 server.use('/api/pedidos', routerPedidos);
 server.use('/api/detalle', routerDetallePedidos);
+
+server.use(cors({
+    origin: 'http://localhost:5173',
+    credentials: true
+}));
+
 
 async function connectDB() {
     try {

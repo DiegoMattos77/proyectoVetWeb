@@ -1,6 +1,5 @@
-import { Table, Column, DataType, Model, ForeignKey, BelongsTo } from 'sequelize-typescript';
-
-
+import { Table, Column, DataType, Model, HasOne } from 'sequelize-typescript';
+import Imagenes from './Imagenes.models';
 @Table({
     tableName: 'productos',
     timestamps: false
@@ -63,6 +62,9 @@ class Productos extends Model {
         allowNull: false
     })
     estado: string;
+
+    @HasOne(() => Imagenes)
+    imagen: Imagenes;
 }
 
 export default Productos;
