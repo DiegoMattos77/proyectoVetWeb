@@ -17,10 +17,11 @@ server.use('/api/login', routerLoginClientes);
 server.use('/api/productos', routerProductos);
 server.use('/api/pedidos', routerPedidos);
 server.use('/api/detalle', routerDetallePedidos);
+server.use('/api/roducto/:id', routerProductos);
 
 server.use(cors({
     origin: 'http://localhost:5173',
-    credentials: true
+    //credentials: true
 }));
 
 
