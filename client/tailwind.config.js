@@ -11,7 +11,7 @@ module.exports = {
           DEFAULT: '#957DAD',
           dark: '#4B0082',
           accent: '#D291BC',
-          muted: '#9F86C0',
+          muted: '#0098da',
         },
       },
     },
