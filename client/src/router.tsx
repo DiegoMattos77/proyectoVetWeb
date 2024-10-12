@@ -1,29 +1,14 @@
 import { createBrowserRouter } from "react-router-dom";
-
+import MainLayout from "./layouts/MainLayout";
+import Login from "./components/Login";
 
 export const router = createBrowserRouter([
-    //   {
-
-    //     path: "/",
-    //     element: <LayoutPrincipal />,
-    //   },
-    //   {
-
-    //     path: "/productos",
-    //     element: <LayoutProductos />,
-    //     children: [
-    //       {
-    //         path: "productos/listar",
-    //         element: <ListarProductos />,
-    //       },
-    //       {
-    //         path: "productos/nuevo",
-    //         element: <RegistrarProducto />,
-    //       },
-    //       {
-    //         path: "productos/actualizar",
-    //         element: <ActualizarProducto />,
-    //       },
-    //     ],
-    //   },
+    {
+        path: "/",
+        element: <MainLayout />,
+    },
+    {
+        path: "/login",
+        element: <Login />,
+    },
 ]);

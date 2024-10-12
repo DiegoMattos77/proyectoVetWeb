@@ -1,19 +1,18 @@
-// src/layouts/MainLayout.tsx
-import { ReactNode } from 'react';
+import { Outlet, Form } from 'react-router-dom'
+import Header from '../components/Header'
+import Section from '../components/Section'
+import Footer from '../components/Footer'
 
-type MainLayoutProps = {
-    children: ReactNode;
-};
 
-const MainLayout = ({ children }: MainLayoutProps) => {
+const MainLayout = () => {
     return (
-        <div>
-            <nav className="bg-blue-500 text-white p-4">
-                <h1 className="text-3xl">My Store</h1>
-            </nav>
-            <main className="container mx-auto p-4">{children}</main>
-        </div>
-    );
-};
+        <>
+            <Header />
+            <Section />
+            <Footer />
+        </>
+    )
+}
 
-export default MainLayout;
+export default MainLayout
+

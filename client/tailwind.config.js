@@ -1,15 +1,20 @@
-/** @type {import('tailwindcss').Config} */
-export default {
+// tailwind.config.js
+module.exports = {
   content: [
-    "./index.html",
-    "./src/**/*.{js,ts,jsx,tsx}",
+    './src/**/*.{js,jsx,ts,tsx}', // Ajusta esta ruta según la estructura de tu proyecto
   ],
   theme: {
     extend: {
-      backgroundImage: {
-        "header": "url('./public/bg.jpg')"
-      }
+      colors: {
+        violetPalette: {
+          light: '#E0BBE4',
+          DEFAULT: '#957DAD',
+          dark: '#4B0082',
+          accent: '#D291BC',
+          muted: '#9F86C0',
+        },
+      },
     },
   },
   plugins: [],
-}
+};
