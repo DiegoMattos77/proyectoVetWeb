@@ -1,6 +1,6 @@
 import Express from "express";
 import routerCliente from "./router/routerCliente";
-import routerLoginClientes from "./router/routerLoginClientes";
+import routerLoginClientes from "./router/authRouter";
 import routerProductos from "./router/routerProductos";
 import routerPedidos from "./router/routerPedidos";
 import routerDetallePedidos from "./router/routerDetallePedidos";
@@ -8,6 +8,16 @@ import db from './config/db';
 import cors from 'cors';
 
 const server = Express();
+
+const corsOptions = {
+    origin: "http://localhost:5173",
+    methods: 'GET,HEAD,PUT,POST',
+    credentials: true,
+    optionsSuccessStatus: 204,
+};
+
+server.use(cors(corsOptions));
+server.options('*', cors(corsOptions));
 
 server.use(Express.json());
 server.use(Express.urlencoded({ extended: true }));
@@ -19,10 +29,8 @@ server.use('/api/pedidos', routerPedidos);
 server.use('/api/detalle', routerDetallePedidos);
 server.use('/api/roducto/:id', routerProductos);
 
-server.use(cors({
-    origin: 'http://localhost:5173',
-    //credentials: true
-}));
+
+
 
 
 async function connectDB() {
