@@ -1,39 +1,42 @@
-import axios from "axios"
-import { safeParse } from "valibot"
-import { LoginClienteSchema } from '../types/index'
-
+import axios from "axios";
+import { safeParse } from "valibot";
+import { LoginClienteSchema } from '../types/index';
 
 type LoginData = {
-    [k: string]: FormDataEntryValue
-}
+    [key: string]: FormDataEntryValue;
+};
 
+const LOGIN_URL = `${import.meta.env.VITE_API_URL}/login`;
 
-const LOGIN_URL = `${import.meta.env.VITE_API_URL}/login`
-
-
-export async function login(data: LoginData) {
-
+export async function login(data: LoginData): Promise<void> {
     try {
         const result = safeParse(LoginClienteSchema, {
             mail: data.mail,
-            password: data.password
-        })
-        if (result.success) {
-            const URL = LOGIN_URL
-            await axios.post(URL, {
-                mail: result.output.mail,
-                password: result.output.password
-            })
-        } else {
-            throw new Error("Correo o contraseña incorrectos")
+            password: data.password,
+        });
 
-
+        if (!result.success) {
+            console.log(result.issues);
+            throw new Error("Formato incorrecto en los datos");
         }
-    } catch (error) {
 
-        console.log(error)
+        const response = await axios.post(LOGIN_URL, {
+            mail: result.output.mail,
+            password: result.output.password,
+        });
 
+        const { authenticated } = response.data;
+
+        if (!authenticated) {
+            throw new Error("Correo o contraseña incorrectos");
+        }
+
+        console.log("Login exitoso:", response.data);
+    } catch (error: unknown) {
+        console.error("Error en el login:", error);
+        if (axios.isAxiosError(error) && error.response) {
+            throw new Error(error.response.data.message || "Error de autenticación");
+        }
+        throw new Error("Error en el login");
     }
-
 }
-

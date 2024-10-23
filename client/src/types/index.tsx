@@ -15,10 +15,8 @@ export const DrafClienteSchema = object({
 
 // Esquema de validación para el modelo LoginCliente
 export const LoginClienteSchema = object({
-    id_clientes: number(),
     mail: string(),
-    password: string(),
-    cliente: DrafClienteSchema
+    password: string()
 });
 
 // Inferir los tipos de salida de los esquemas
