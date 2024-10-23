@@ -34,7 +34,7 @@ export async function registro(data: ClienteData): Promise<void> {
             domicilio: result.output.domicilio,
             telefono: result.output.telefono,
             mail: result.output.mail,
-            password: result.output.password
+            password: result.output.loguin.password
         });
 
         const { authenticated } = response.data;
