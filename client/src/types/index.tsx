@@ -1,4 +1,4 @@
-import { object, string, number, InferOutput, blob, array, integer } from 'valibot';
+import { object, string, number, InferOutput, blob, array } from 'valibot';
 
 // Esquema de validación para el modelo Cliente
 export const DrafClienteSchema = object({
@@ -11,11 +11,7 @@ export const DrafClienteSchema = object({
     telefono: string(),
     mail: string(),
     estado: string(),
-    loguin: object({
-        id_clientes: number(),
-        mail: string(),
-        password: string()
-    })
+    password: string()
 });
 
 // Esquema de validación para el modelo LoginCliente

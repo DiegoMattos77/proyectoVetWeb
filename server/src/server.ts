@@ -1,6 +1,6 @@
 import Express from "express";
 import routerCliente from "./router/routerCliente";
-import routerLoginClientes from "./router/authRouter";
+import authRouter from "./router/authRouter";
 import routerProductos from "./router/routerProductos";
 import routerPedidos from "./router/routerPedidos";
 import routerDetallePedidos from "./router/routerDetallePedidos";
@@ -23,7 +23,7 @@ server.use(Express.json());
 server.use(Express.urlencoded({ extended: true }));
 
 server.use('/api/clientes', routerCliente);
-server.use('/api/login', routerLoginClientes);
+server.use('/api/login', authRouter);
 server.use('/api/productos', routerProductos);
 server.use('/api/pedidos', routerPedidos);
 server.use('/api/detalle', routerDetallePedidos);

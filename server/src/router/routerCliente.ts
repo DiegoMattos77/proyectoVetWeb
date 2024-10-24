@@ -5,7 +5,7 @@ import { inputErrors } from '../middleware';
 
 const router = Router();
 
-router.post('/',
+router.post('/registrarme',
     body('dni')
         .isString().notEmpty().withMessage('El DNI no puede estar vacío')
         .isLength({ max: 10 }).withMessage('El DNI no puede exceder los 10 caracteres')
@@ -33,6 +33,7 @@ router.post('/',
     body('estado')
         .isString().notEmpty().withMessage('El estado no puede estar vacío')
         .isLength({ max: 8 }).withMessage('El estado no puede exceder los 8 caracteres'),
+    body('password'),
     inputErrors, createClient);
 
 router.get('/', getClients);
@@ -70,6 +71,7 @@ router.put('/:id',
     body('estado')
         .isString().notEmpty().withMessage('El estado no puede estar vacío')
         .isLength({ max: 8 }).withMessage('El estado no puede exceder los 8 caracteres'),
+    body('password'),
     inputErrors, updateClient);
 
 // router.delete('/:id',

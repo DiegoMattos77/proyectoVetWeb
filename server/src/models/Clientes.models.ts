@@ -62,6 +62,12 @@ class Cliente extends Model {
         allowNull: false
     })
     estado: string;
+
+    @Column({
+        type: DataType.STRING(16),
+        allowNull: true
+    })
+    password: string;
 }
 
 export default Cliente;

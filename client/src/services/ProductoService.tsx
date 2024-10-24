@@ -1,6 +1,6 @@
 import { safeParse } from "valibot"
 import axios from 'axios'
-import { ProductosSchema, Productos, ProductsSchema } from '../types/index'
+import { ProductsSchema } from '../types/index'
 
 
 type ProductoData = {
@@ -11,7 +11,7 @@ export async function postProducto(data: ProductoData) {
 
     //Validamos si es la información que recibimos con valibot
     try {
-        const result = safeParse(ProductosSchema, {
+        const result = safeParse(ProductsSchema, {
             descripcion: data.descripcion,
             precio_venta: +data.precio_venta,
 
@@ -61,7 +61,7 @@ export async function getByIdProductoId(id: Productos['id_producto']) {
         const url = `${import.meta.env.VITE_API_URL}/productos/${id}`
         const { data } = await axios(url)
         // console.log(data.data)
-        const result = safeParse(ProductosSchema, data.data)
+        const result = safeParse(ProductsSchema, data.data)
         if (result.success) {
             return result.output
         } else {

@@ -1,12 +1,12 @@
 import { Request, Response } from "express";
-import LoginCliente from "../models/LoginClientes.models";
+import ClienteLogin from "../models/Clientes.models";
 
 
 
 export async function loginClientes(req: Request, res: Response) {
     try {
         const { mail, password } = req.body;
-        const cliente = await LoginCliente.findOne({ where: { mail, password } });
+        const cliente = await ClienteLogin.findOne({ where: { mail, password } });
 
         if (!mail || !password) {
             return res.status(400).json({ message: "Todos los campos son requeridos" });

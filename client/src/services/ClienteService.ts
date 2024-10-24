@@ -1,12 +1,12 @@
 import axios from "axios";
 import { safeParse } from "valibot";
-import { Cliente, DrafClienteSchema } from '../types/index';
+import { DrafClienteSchema } from '../types/index';
 
 type ClienteData = {
     [key: string]: FormDataEntryValue;
 };
 
-const REGISTRO_URL = `${import.meta.env.VITE_API_URL}/registrarme`;
+const REGISTRO_URL = `${import.meta.env.VITE_API_URL}/clientes/registrarme`;
 
 export async function registro(data: ClienteData): Promise<void> {
     try {
@@ -20,7 +20,7 @@ export async function registro(data: ClienteData): Promise<void> {
             mail: data.mail,
             password: data.password
         });
-
+        console.log(data)
         if (!result.success) {
             console.log(result.issues);
             throw new Error("Formato incorrecto en los datos");
@@ -34,21 +34,15 @@ export async function registro(data: ClienteData): Promise<void> {
             domicilio: result.output.domicilio,
             telefono: result.output.telefono,
             mail: result.output.mail,
-            password: result.output.loguin.password
+            password: result.output.password
         });
 
-        const { authenticated } = response.data;
-
-        if (!authenticated) {
-            throw new Error("Correo o contraseña incorrectos");
-        }
-
-        console.log("Login exitoso:", response.data);
+        console.log("Registro exitoso:", response.data);
     } catch (error: unknown) {
-        console.error("Error en el login:", error);
+        console.error("Error en el registro:", error);
         if (axios.isAxiosError(error) && error.response) {
-            throw new Error(error.response.data.message || "Error de autenticación");
+            throw new Error(error.response.data.message || "Error de registro");
         }
-        throw new Error("Error en el login");
+        throw new Error("Error en el registro");
     }
 }

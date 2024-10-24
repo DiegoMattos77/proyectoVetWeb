@@ -1,7 +1,7 @@
 import { createBrowserRouter } from "react-router-dom";
 import MainLayout from "./layouts/MainLayout";
 import Login, { action as actionLogin } from "./components/Login";
-import RegistroClientes from "./components/RegistroClientes";
+import RegistroClientes, { action as actionRegistroClientes } from "./components/RegistroClientes";
 
 
 export const router = createBrowserRouter([
@@ -18,5 +18,6 @@ export const router = createBrowserRouter([
     {
         path: "/registrarme",
         element: <RegistroClientes />,
+        action: actionRegistroClientes
     }
 ]);
