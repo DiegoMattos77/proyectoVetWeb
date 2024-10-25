@@ -53,7 +53,8 @@ class Cliente extends Model {
 
     @Column({
         type: DataType.STRING(35),
-        allowNull: false
+        allowNull: false,
+        unique: true
     })
     mail: string;
 
