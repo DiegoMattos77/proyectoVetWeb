@@ -8,6 +8,8 @@ type ClienteData = {
 
 const REGISTRO_URL = `${import.meta.env.VITE_API_URL}/clientes/registrarme`;
 
+const estado = "activo";
+
 export async function registro(data: ClienteData): Promise<void> {
     try {
         const result = safeParse(DrafClienteSchema, {
@@ -18,11 +20,13 @@ export async function registro(data: ClienteData): Promise<void> {
             domicilio: data.domicilio,
             telefono: data.telefono,
             mail: data.mail,
+            estado: estado,
             password: data.password
         });
         console.log(data)
         if (!result.success) {
             console.log(result.issues);
+            console.log("Errores en la validación:", result.issues);
             throw new Error("Formato incorrecto en los datos");
         }
 
@@ -34,6 +38,7 @@ export async function registro(data: ClienteData): Promise<void> {
             domicilio: result.output.domicilio,
             telefono: result.output.telefono,
             mail: result.output.mail,
+            estado: estado,
             password: result.output.password
         });
 

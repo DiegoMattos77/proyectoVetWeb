@@ -59,12 +59,13 @@ class Cliente extends Model {
 
     @Column({
         type: DataType.STRING(8),
-        allowNull: false
+        allowNull: false,
+        defaultValue: "activo"
     })
     estado: string;
 
     @Column({
-        type: DataType.STRING(16),
+        type: DataType.STRING(255),
         allowNull: true
     })
     password: string;

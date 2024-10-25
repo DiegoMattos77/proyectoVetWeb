@@ -10,7 +10,7 @@ type RegistroFormProps = {
 
 export async function action({ request }: ActionFunctionArgs) {
     const data = Object.fromEntries(await request.formData());
-
+    console.log("Datos enviados:", data);
     if (Object.values(data).some(value => value === "")) {
         return "Todos los campos son obligatorios";
     }
@@ -32,7 +32,7 @@ const RegistroClientes = ({ registroCliente }: RegistroFormProps) => {
         setPasswordVisible(!passwordVisible);
     };
 
-    //  const error = useActionData() as string;
+    // const error = useActionData() as string;
 
 
 
