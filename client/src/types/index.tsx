@@ -14,15 +14,25 @@ export const DrafClienteSchema = object({
     password: string()
 });
 
-// Esquema de validación para el modelo LoginCliente
+export const ClienteSchema = object({
+    id_cliente: number(),
+    dni: string(),
+    cuit_cuil: string(),
+    nombre: string(),
+    apellido: string(),
+    domicilio: string(),
+    telefono: string(),
+    mail: string(),
+    estado: string(),
+    password: string()
+});
+
+
 export const LoginClienteSchema = object({
     mail: string(),
     password: string()
 });
 
-// Inferir los tipos de salida de los esquemas
-export type Cliente = InferOutput<typeof DrafClienteSchema>;
-export type LoginCliente = InferOutput<typeof LoginClienteSchema>;
 
 // Esquema de validación para el modelo Productos
 export const getProductosSchema = object({
@@ -58,4 +68,11 @@ export const getImagenesSchema = object({
 // Inferir los tipos de salida de los esquemas
 export type getProductos = InferOutput<typeof getProductosSchema>;
 export type getImagenes = InferOutput<typeof getImagenesSchema>;
-export const ProductsSchema = array(getProductosSchema)
+export type ClienteCompleto = InferOutput<typeof ClienteSchema>;
+export type Cliente = InferOutput<typeof DrafClienteSchema>;
+export type LoginCliente = InferOutput<typeof LoginClienteSchema>;
+
+
+
+export const ProductsSchema = array(getProductosSchema);
+export const ClientesSchema = array(ClienteSchema);

@@ -1,12 +1,9 @@
 import { useState } from "react";
-import { Form, ActionFunctionArgs, redirect } from "react-router-dom";
-import { registro } from '../services/ClienteService';
+import { Form, ActionFunctionArgs, redirect, useLoaderData } from "react-router-dom";
+import { actualizar, obtenerClienteById } from '../services/ClienteService';
 import { Cliente } from '../types/index';
 import { AiOutlineEye, AiOutlineEyeInvisible } from "react-icons/ai";
 
-type RegistroFormProps = {
-    registroCliente?: Cliente;
-};
 
 export async function action({ request }: ActionFunctionArgs) {
     const data = Object.fromEntries(await request.formData());
@@ -16,8 +13,13 @@ export async function action({ request }: ActionFunctionArgs) {
     }
 
     try {
-        await registro(data);
-        return redirect('/');
+        const idUsuario = localStorage.getItem('id_cliente');
+        if (!idUsuario) throw new Error('No se encontró el ID del cliente');
+
+        const id_cliente = Number(idUsuario);
+        const cliente = await actualizar(data, id_cliente);
+        console.log(cliente)
+        return redirect('/login');
     } catch (error: unknown) {
         if (error instanceof Error) {
             return error.message;
@@ -26,81 +28,155 @@ export async function action({ request }: ActionFunctionArgs) {
     }
 }
 
-const RegistroClientes = ({ registroCliente }: RegistroFormProps) => {
+
+
+export async function loader() {
+    try {
+        const idUsuario = localStorage.getItem('id_cliente');
+        if (!idUsuario) throw new Error('No se encontró el ID del cliente');
+
+        const id_cliente = Number(idUsuario);
+        const cliente = await obtenerClienteById(id_cliente);
+
+        if (!cliente) throw new Error('No se pudo encontrar el cliente');
+        return cliente;
+    } catch (error) {
+        console.error("Error al cargar el cliente:", error);
+        throw new Error("No se pudo cargar el cliente");
+    }
+}
+
+
+
+
+
+const EditarClientes = () => {
     const [passwordVisible, setPasswordVisible] = useState(false);
+
+
 
     const togglePasswordVisibility = () => {
         setPasswordVisible(!passwordVisible);
     };
 
+    const cliente = useLoaderData() as Cliente
+
+
+
     return (
         <div className="max-w-md mx-auto mt-10 p-6 bg-white rounded-lg shadow-md">
-            <h2 className="text-2xl font-bold mb-6 text-center text-violetPalette-muted">Registro de Cliente</h2>
+            <h2 className="text-2xl font-bold mb-6 text-center text-violetPalette-muted">Editar Perfil</h2>
             <Form method="POST">
                 <div className="mb-4">
                     <label className="block text-gray-700">Nombre</label>
                     <input
-                        defaultValue={registroCliente?.nombre}
+                        defaultValue={cliente?.nombre}
                         name="nombre"
                         id="nombre"
                         type="text"
                         placeholder="Nombre"
                         className="w-full px-4 py-2 mt-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-violet-500"
+
                     />
+                    <button
+                        type="button"
+
+                        className="absolute inset-y-0 right-3 flex items-center text-gray-600"
+                    >
+
+                    </button>
                 </div>
 
+                {/* Resto de los campos */}
                 <div className="mb-4">
                     <label className="block text-gray-700">Apellido</label>
                     <input
-                        defaultValue={registroCliente?.apellido}
+                        defaultValue={cliente?.apellido}
                         name="apellido"
                         id="apellido"
                         type="text"
                         placeholder="Apellido"
                         className="w-full px-4 py-2 mt-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-violet-500"
+
                     />
+                    <button
+                        type="button"
+
+                        className="absolute inset-y-0 right-3 flex items-center text-gray-600"
+                    >
+
+                    </button>
                 </div>
 
-                <div className="mb-4">
+                <div className="mb-4 relative">
                     <label className="block text-gray-700">Domicilio</label>
-                    <input
-                        defaultValue={registroCliente?.domicilio}
-                        name="domicilio"
-                        id="domicilio"
-                        type="text"
-                        placeholder="Domicilio"
-                        className="w-full px-4 py-2 mt-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-violet-500"
-                    />
+                    <div className="relative">
+                        <input
+                            defaultValue={cliente?.domicilio}
+                            name="domicilio"
+                            id="domicilio"
+                            type="text"
+                            placeholder="Domicilio"
+                            className="w-full px-4 py-2 pr-10 mt-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-violet-500"
+
+                        />
+                        <button
+                            type="button"
+
+                            className="absolute inset-y-0 right-3 flex items-center text-gray-600"
+                        >
+
+                        </button>
+                    </div>
                 </div>
 
-                <div className="mb-4">
+                <div className="mb-4 relative">
                     <label className="block text-gray-700">Teléfono</label>
-                    <input
-                        defaultValue={registroCliente?.telefono}
-                        name="telefono"
-                        id="telefono"
-                        type="text"
-                        placeholder="Teléfono"
-                        className="w-full px-4 py-2 mt-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-violet-500"
-                    />
+                    <div className="relative">
+                        <input
+                            defaultValue={cliente?.telefono}
+                            name="telefono"
+                            id="telefono"
+                            type="text"
+                            placeholder="Teléfono"
+                            className="w-full px-4 py-2 pr-10 mt-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-violet-500"
+
+                        />
+                        <button
+                            type="button"
+
+                            className="absolute inset-y-0 right-3 flex items-center text-gray-600"
+                        >
+
+                        </button>
+                    </div>
                 </div>
 
-                <div className="mb-4">
+                <div className="mb-4 relative">
                     <label className="block text-gray-700">Email</label>
-                    <input
-                        defaultValue={registroCliente?.mail}
-                        name="mail"
-                        id="mail"
-                        type="text"
-                        placeholder="Email"
-                        className="w-full px-4 py-2 mt-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-violet-500"
-                    />
-                </div>
+                    <div className="relative">
+                        <input
+                            defaultValue={cliente?.mail}
+                            name="mail"
+                            id="mail"
+                            type="text"
+                            placeholder="Email"
+                            className="w-full px-4 py-2 pr-10 mt-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-violet-500"
 
+                        />
+                        <button
+                            type="button"
+
+                            className="absolute inset-y-0 right-3 flex items-center text-gray-600"
+                        >
+
+                        </button>
+                    </div>
+                </div>
                 <div className="mb-4">
                     <label className="block text-gray-700">DNI</label>
                     <input
-                        defaultValue={registroCliente?.dni}
+                        defaultValue={cliente?.dni}
                         name="dni"
                         id="dni"
                         type="text"
@@ -112,7 +188,7 @@ const RegistroClientes = ({ registroCliente }: RegistroFormProps) => {
                 <div className="mb-4">
                     <label className="block text-gray-700">CUIT/CUIL</label>
                     <input
-                        defaultValue={registroCliente?.cuit_cuil}
+                        defaultValue={cliente?.cuit_cuil}
                         name="cuit_cuil"
                         id="cuit_cuil"
                         type="text"
@@ -120,7 +196,6 @@ const RegistroClientes = ({ registroCliente }: RegistroFormProps) => {
                         className="w-full px-4 py-2 mt-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-violet-500"
                     />
                 </div>
-
                 <div className="mb-4 relative">
                     <label className="block text-gray-700">Contraseña</label>
                     <div className="relative">
@@ -130,6 +205,7 @@ const RegistroClientes = ({ registroCliente }: RegistroFormProps) => {
                             type={passwordVisible ? "text" : "password"}
                             placeholder="Contraseña"
                             className="w-full px-4 py-2 pr-10 mt-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-violet-500"
+
                         />
                         <button
                             type="button"
@@ -145,11 +221,11 @@ const RegistroClientes = ({ registroCliente }: RegistroFormProps) => {
                     type="submit"
                     className="w-full bg-violetPalette-muted hover:bg-violet-800 text-white py-2.5 rounded-lg text-center font-medium transition duration-150 ease-in-out shadow-md"
                 >
-                    Registrarse
+                    Guardar
                 </button>
             </Form>
         </div>
     );
 };
 
-export default RegistroClientes;
+export default EditarClientes;

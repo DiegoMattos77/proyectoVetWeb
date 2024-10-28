@@ -12,6 +12,7 @@ module.exports = {
           dark: '#4B0082',
           accent: '#D291BC',
           muted: '#0098da',
+          headerColor: '#cbd5e1',
         },
       },
     },

@@ -19,6 +19,8 @@ export async function loginClientes(req: Request, res: Response) {
         return res.json({
             data: {
                 mail: cliente.mail,
+                nombre: cliente.nombre,
+                id_cliente: cliente.id_cliente
             },
             message: "Login exitoso",
             authenticated: true
