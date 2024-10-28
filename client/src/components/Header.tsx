@@ -9,7 +9,6 @@ const Header = () => {
     const [isAccountMenuOpen, setIsAccountMenuOpen] = useState(false);
     const [nombre, setNombre] = useState<string | null>(null);
 
-    // Obtén el nombre del usuario desde localStorage al montar el componente
     useEffect(() => {
         const nombreUsuario = getUserName();
         setNombre(nombreUsuario);
@@ -54,31 +53,31 @@ const Header = () => {
                                 </Link>
                             </div>
                         ) : (
-                            <span className="text-gray-700 text-sm">
-                                Bienvenido {nombre}
-                            </span>
-                        )}
+                            <>
+                                <span className="text-gray-700 text-sm">Bienvenido {nombre}</span>
 
-                        <div className="relative flex flex-col items-center">
-                            <button
-                                className="text-violetPalette-muted"
-                                onClick={toggleAccountMenu}
-                            >
-                                <FaUserCircle size={28} />
-                            </button>
-                            <span className="text-xs text-gray-500">Mi Cuenta</span>
+                                <div className="relative flex flex-col items-center">
+                                    <button
+                                        className="text-violetPalette-muted"
+                                        onClick={toggleAccountMenu}
+                                    >
+                                        <FaUserCircle size={28} />
+                                    </button>
+                                    <span className="text-xs text-gray-500">Mi Cuenta</span>
 
-                            {isAccountMenuOpen && (
-                                <div
-                                    className="absolute right-0 top-full mt-2 w-48 bg-white border border-gray-200 rounded-md shadow-lg z-10"
-                                >
-                                    <ul className="py-1">
-                                        <li><Link to='/editarme' className="block px-4 py-2 text-gray-700 hover:bg-gray-100">Perfil</Link></li>
-                                        <li><button onClick={handleLogout} className="block w-full text-left px-4 py-2 text-gray-700 hover:bg-gray-100">Cerrar Sesión</button></li>
-                                    </ul>
+                                    {isAccountMenuOpen && (
+                                        <div
+                                            className="absolute right-0 top-full mt-2 w-48 bg-white border border-gray-200 rounded-md shadow-lg z-10"
+                                        >
+                                            <ul className="py-1">
+                                                <li><Link to='/editarme' className="block px-4 py-2 text-gray-700 hover:bg-gray-100">Perfil</Link></li>
+                                                <li><button onClick={handleLogout} className="block w-full text-left px-4 py-2 text-gray-700 hover:bg-gray-100">Cerrar Sesión</button></li>
+                                            </ul>
+                                        </div>
+                                    )}
                                 </div>
-                            )}
-                        </div>
+                            </>
+                        )}
 
                         <div className="block md:hidden">
                             <button

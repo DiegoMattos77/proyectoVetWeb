@@ -1,5 +1,10 @@
 import { useState } from 'react';
 import products from './products';
+import { obtenerProductos } from '../services/ProductosService';
+
+
+
+
 
 
 const Section = () => {

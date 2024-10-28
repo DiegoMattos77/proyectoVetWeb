@@ -27,7 +27,7 @@ server.use('/api/login', authRouter);
 server.use('/api/productos', routerProductos);
 server.use('/api/pedidos', routerPedidos);
 server.use('/api/detalle', routerDetallePedidos);
-server.use('/api/roducto/:id', routerProductos);
+server.use('/api/productos/:id', routerProductos);
 
 
 
