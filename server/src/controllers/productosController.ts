@@ -4,25 +4,26 @@ import Imagenes from "../models/Imagenes.models";
 
 // Función para convertir Blob a Base64
 const convertBlobToBase64 = (blob: Buffer): string => {
-    return blob.toString('base64'); // Asegúrate de que esto sea un Buffer
+    return blob.toString('base64');
+
 };
 
-// Obtener todos los productos (incluyendo sus imágenes en Base64)
 export const getProducto = async (_req: Request, res: Response) => {
     try {
         const productos = await Productos.findAll({
-            include: [Imagenes], // Incluir las imágenes relacionadas
+            include: [Imagenes],
         });
 
-        // Convertir imágenes a Base64
         const productosConImagenes = productos.map((producto) => {
-            if (producto.imagen) {
-                return {
-                    ...producto.toJSON(), // Convierte el producto a JSON
-                    imagen: convertBlobToBase64(producto.imagen.imagen_bin as unknown as Buffer), // Convierte la imagen a Base64
-                };
+            const productoJSON = producto.toJSON();
+
+            if (producto.imagen?.imagen_bin) {
+                productoJSON.imagen = convertBlobToBase64(
+                    producto.imagen.imagen_bin as unknown as Buffer
+                );
             }
-            return producto.toJSON();
+
+            return productoJSON;
         });
 
         res.status(200).json(productosConImagenes);
@@ -31,6 +32,21 @@ export const getProducto = async (_req: Request, res: Response) => {
         res.status(500).json({ error: error.message });
     }
 };
+
+// export const getProducto = async (_req: Request, res: Response) => {
+//     try {
+//         const productos = await Productos.findAll({
+//             attributes: ['id_producto', 'descripcion', 'id_proveedor', 'id_categoria', 'stock', 'stock_seguridad', 'estado', 'precio_compra', 'precio_venta', 'imagen']
+//         });
+
+//         // No se agregaron los atributos: imagen
+
+//         res.status(200).json(productos);
+//     } catch (error) {
+//         console.error('Error al obtener productos', error);
+//         res.status(500).json({ error: error.message });
+//     }
+// };
 
 // Obtener un producto por su ID (incluyendo la imagen en Base64)
 export const getProductoById = async (req: Request, res: Response) => {

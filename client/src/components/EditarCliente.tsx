@@ -4,7 +4,6 @@ import { actualizar, obtenerClienteById } from '../services/ClienteService';
 import { Cliente } from '../types/index';
 import { AiOutlineEye, AiOutlineEyeInvisible } from "react-icons/ai";
 
-
 export async function action({ request }: ActionFunctionArgs) {
     const data = Object.fromEntries(await request.formData());
     console.log("Datos enviados:", data);
@@ -28,8 +27,6 @@ export async function action({ request }: ActionFunctionArgs) {
     }
 }
 
-
-
 export async function loader() {
     try {
         const idUsuario = localStorage.getItem('id_cliente');
@@ -46,22 +43,14 @@ export async function loader() {
     }
 }
 
-
-
-
-
 const EditarClientes = () => {
     const [passwordVisible, setPasswordVisible] = useState(false);
-
-
 
     const togglePasswordVisibility = () => {
         setPasswordVisible(!passwordVisible);
     };
 
     const cliente = useLoaderData() as Cliente
-
-
 
     return (
         <div className="max-w-md mx-auto mt-10 p-6 bg-white rounded-lg shadow-md">
@@ -76,18 +65,14 @@ const EditarClientes = () => {
                         type="text"
                         placeholder="Nombre"
                         className="w-full px-4 py-2 mt-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-violet-500"
-
                     />
                     <button
                         type="button"
-
                         className="absolute inset-y-0 right-3 flex items-center text-gray-600"
                     >
 
                     </button>
                 </div>
-
-                {/* Resto de los campos */}
                 <div className="mb-4">
                     <label className="block text-gray-700">Apellido</label>
                     <input
@@ -97,17 +82,13 @@ const EditarClientes = () => {
                         type="text"
                         placeholder="Apellido"
                         className="w-full px-4 py-2 mt-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-violet-500"
-
                     />
                     <button
                         type="button"
-
                         className="absolute inset-y-0 right-3 flex items-center text-gray-600"
                     >
-
                     </button>
                 </div>
-
                 <div className="mb-4 relative">
                     <label className="block text-gray-700">Domicilio</label>
                     <div className="relative">
@@ -118,18 +99,14 @@ const EditarClientes = () => {
                             type="text"
                             placeholder="Domicilio"
                             className="w-full px-4 py-2 pr-10 mt-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-violet-500"
-
                         />
                         <button
                             type="button"
-
                             className="absolute inset-y-0 right-3 flex items-center text-gray-600"
                         >
-
                         </button>
                     </div>
                 </div>
-
                 <div className="mb-4 relative">
                     <label className="block text-gray-700">Teléfono</label>
                     <div className="relative">
@@ -140,18 +117,14 @@ const EditarClientes = () => {
                             type="text"
                             placeholder="Teléfono"
                             className="w-full px-4 py-2 pr-10 mt-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-violet-500"
-
                         />
                         <button
                             type="button"
-
                             className="absolute inset-y-0 right-3 flex items-center text-gray-600"
                         >
-
                         </button>
                     </div>
                 </div>
-
                 <div className="mb-4 relative">
                     <label className="block text-gray-700">Email</label>
                     <div className="relative">
@@ -162,14 +135,11 @@ const EditarClientes = () => {
                             type="text"
                             placeholder="Email"
                             className="w-full px-4 py-2 pr-10 mt-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-violet-500"
-
                         />
                         <button
                             type="button"
-
                             className="absolute inset-y-0 right-3 flex items-center text-gray-600"
                         >
-
                         </button>
                     </div>
                 </div>
@@ -184,7 +154,6 @@ const EditarClientes = () => {
                         className="w-full px-4 py-2 mt-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-violet-500"
                     />
                 </div>
-
                 <div className="mb-4">
                     <label className="block text-gray-700">CUIT/CUIL</label>
                     <input
@@ -205,7 +174,6 @@ const EditarClientes = () => {
                             type={passwordVisible ? "text" : "password"}
                             placeholder="Contraseña"
                             className="w-full px-4 py-2 pr-10 mt-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-violet-500"
-
                         />
                         <button
                             type="button"
@@ -216,7 +184,6 @@ const EditarClientes = () => {
                         </button>
                     </div>
                 </div>
-
                 <button
                     type="submit"
                     className="w-full bg-violetPalette-muted hover:bg-violet-800 text-white py-2.5 rounded-lg text-center font-medium transition duration-150 ease-in-out shadow-md"

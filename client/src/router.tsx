@@ -3,7 +3,7 @@ import MainLayout from "./layouts/MainLayout";
 import Login, { action as actionLogin } from "./components/Login";
 import RegistroClientes, { action as actionRegistroClientes } from "./components/RegistroClientes";
 import EditarClientes, { action as actionEditarCliente, loader as loaderEditarCliente } from "./components/EditarCliente"
-import Section, { loader as loaderproductos } from "./components/Section";
+import Section, { loader as loaderProductos } from "./components/Section";
 
 
 export const router = createBrowserRouter([
@@ -14,7 +14,7 @@ export const router = createBrowserRouter([
             {
                 index: true,
                 element: <Section />,
-                loader: loaderproductos
+                loader: loaderProductos
             }
         ],
 

@@ -1,4 +1,4 @@
-import { object, string, number, InferOutput, blob, array } from 'valibot';
+import { object, string, number, InferOutput, array } from 'valibot';
 
 // Esquema de validación para el modelo Cliente
 export const DrafClienteSchema = object({
@@ -44,14 +44,7 @@ export const getProductosSchema = object({
     precio_compra: number(),
     stock_seguridad: number(),
     estado: string(),
-    imagen: object({
-        id_imagen: number(),
-        id_productos: number(),
-        nombre_archivo: string(),
-        ruta: string(),
-        descripcion: string(),
-        imagen_bin: blob()
-    })
+    imagen: string(),
 });
 
 // // Esquema de validación para el modelo Imagenes
@@ -65,13 +58,11 @@ export const getProductosSchema = object({
 // });
 
 // Inferir los tipos de salida de los esquemas
-export type getProductos = InferOutput<typeof getProductosSchema>;
+export type Productos = InferOutput<typeof getProductosSchema>;
 //export type getImagenes = InferOutput<typeof getImagenesSchema>;
 export type ClienteCompleto = InferOutput<typeof ClienteSchema>;
 export type Cliente = InferOutput<typeof DrafClienteSchema>;
 export type LoginCliente = InferOutput<typeof LoginClienteSchema>;
-
-
 
 export const ProductsSchema = array(getProductosSchema);
 export const ClientesSchema = array(ClienteSchema);
