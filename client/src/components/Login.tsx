@@ -52,7 +52,7 @@ const LoginForm = ({ login }: LoginFormProps) => {
                             <div className="flex justify-between mb-2">
                                 <label className="text-sm">Contraseña</label>
                                 <a href="#" className="text-xs hover:underline text-gray-600">
-                                    ¿Has olvidado tu contraseña?
+
                                 </a>
                             </div>
                             <input

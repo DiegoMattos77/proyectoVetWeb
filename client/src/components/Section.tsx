@@ -15,7 +15,6 @@ export async function loader() {
     }
 }
 
-
 const Section = () => {
     const productos = useLoaderData() as Productos[] | undefined;
 
@@ -24,20 +23,22 @@ const Section = () => {
     }
 
     return (
-        <section className="text-gray-600 body-font">
+        <section className="text-gray-600 body-font bc-violetPalette-DEFAULT ">
             <div className="container px-5 py-24 mx-auto">
                 <div className="flex flex-wrap -m-4">
                     {productos.map((producto) => (
                         <a
                             href="#"
                             key={producto.id_producto}
-                            className="block rounded-lg p-4 shadow-sm shadow-indigo-100 lg:w-1/4 md:w-1/2 w-full"
+                            className="block rounded-lg p-4 shadow-sm shadow-indigo-100 lg:w-1/4 md:w-1/2 w-full transform transition hover:scale-105"
                         >
-                            <img
-                                alt={producto.descripcion}
-                                src={`data:image/jpeg;base64,${producto.imagen}`}
-                                className="h-56 w-full rounded-md object-cover"
-                            />
+                            <div className="overflow-hidden rounded-md h-56 w-full">
+                                <img
+                                    alt={producto.descripcion}
+                                    src={`data:image/jpeg;base64,${producto.imagen}`}
+                                    className="h-full w-full object-cover transition-transform duration-300 hover:scale-110"
+                                />
+                            </div>
 
                             <div className="mt-2">
                                 <dl>
