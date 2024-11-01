@@ -1,20 +1,27 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { FaUserCircle, FaShoppingCart } from "react-icons/fa";
-import LogoVet from '../img/LogoVet.png';
+import LogoVet from "../img/LogoVet.png";
 import { getUserName, logout } from "../services/AuthService";
 
 const Header = () => {
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const [isAccountMenuOpen, setIsAccountMenuOpen] = useState(false);
-    const [isCartOpen, setIsCartOpen] = useState(false); // Estado para el modal del carrito
+    const [isCartOpen, setIsCartOpen] = useState(false);
     const [nombre, setNombre] = useState<string | null>(null);
-    const [cartItemsCount, setCartItemsCount] = useState(2); // Ejemplo de cantidad de items
+    const [cartItems, setCartItems] = useState<{ id: number; nombre: string; precio: number }[]>([]);
+    const [total, setTotal] = useState(0);
 
     useEffect(() => {
         const nombreUsuario = getUserName();
         setNombre(nombreUsuario);
     }, []);
+
+    useEffect(() => {
+        // Calcular el total cada vez que cambian los elementos del carrito
+        const newTotal = cartItems.reduce((acc, item) => acc + item.precio, 0);
+        setTotal(newTotal);
+    }, [cartItems]);
 
     const toggleMenu = () => {
         setIsMenuOpen(!isMenuOpen);
@@ -35,9 +42,13 @@ const Header = () => {
     };
 
     const handleCheckout = () => {
-        // Lógica para proceder a la compra
         console.log("Compra realizada");
-        setIsCartOpen(false); // Cierra el modal después de comprar
+        setIsCartOpen(false);
+    };
+
+    // Función para agregar productos al carrito
+    const addToCart = (product: { id: number; nombre: string; precio: number }) => {
+        setCartItems((prevItems) => [...prevItems, product]);
     };
 
     return (
@@ -65,9 +76,9 @@ const Header = () => {
                                 onClick={toggleCart}
                             >
                                 <FaShoppingCart size={40} />
-                                {cartItemsCount > 0 && (
+                                {cartItems.length > 0 && (
                                     <span className="absolute top-0 right-0 bg-red-500 text-white rounded-full px-1 py-0.9 text-xs">
-                                        {cartItemsCount}
+                                        {cartItems.length}
                                     </span>
                                 )}
                             </button>
@@ -142,10 +153,21 @@ const Header = () => {
                         <div className="bg-white rounded-md shadow-lg w-80 p-4">
                             <h2 className="text-lg font-semibold text-gray-700 mb-4">Carrito de Compras</h2>
                             <ul className="space-y-2">
-                                <li className="text-gray-600">Producto 1 - $10</li>
-                                <li className="text-gray-600">Producto 2 - $20</li>
-                                {/* Agrega más productos aquí */}
+                                {cartItems.length > 0 ? (
+                                    cartItems.map((item) => (
+                                        <li key={item.id} className="text-gray-600">
+                                            {item.nombre} - ${item.precio}
+                                        </li>
+                                    ))
+                                ) : (
+                                    <li className="text-gray-600">El carrito está vacío</li>
+                                )}
                             </ul>
+                            {cartItems.length > 0 && (
+                                <div className="mt-2">
+                                    <span className="font-semibold text-gray-700">Total: ${total.toFixed(2)}</span>
+                                </div>
+                            )}
                             <div className="mt-4 flex justify-end">
                                 <button
                                     onClick={handleCheckout}
