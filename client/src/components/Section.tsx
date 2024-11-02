@@ -1,77 +1,65 @@
-import { obtenerProductos } from '../services/ProductosService';
-import { useLoaderData } from 'react-router-dom';
-import { Productos } from '../types';
-import { useCart } from './Cart';
+import { Productos } from "../types/index";
+import { formatCurrency } from "../helpers/index";
+import Swal from "sweetalert2";
+import { useCart } from "./CotextoCarrito";
 
-// Loader function to fetch products
-export async function loader() {
-    try {
-        const productos = await obtenerProductos();
-        return productos || [];
-    } catch (error) {
-        console.error("Error fetching products:", error);
-        return [];
-    }
-}
+type ProductoDetalles = {
+    producto: Productos;
+};
 
-const Section = () => {
-    const productos = useLoaderData() as Productos[];
-    const { addToCart } = useCart();
+const InicioProductDetalle = ({ producto }: ProductoDetalles) => {
+    const { agregarAlCarrito } = useCart();
 
-    if (!productos || productos.length === 0) {
-        return <p>Cargando productos...</p>;
-    }
+    const handleAgree = async (e: React.FormEvent<HTMLFormElement>) => {
+        e.preventDefault();
+        agregarAlCarrito(producto);
+
+        await Swal.fire({
+            title: "¡Agregado!",
+            text: "El producto se agregó al carrito con éxito",
+            icon: "success",
+            confirmButtonColor: "#facc15",
+            timer: 1500,
+            showConfirmButton: false
+        });
+    };
 
     return (
-        <section className="text-gray-800 body-font bg-violet-200">
-            <div className="container px-5 py-24 mx-auto">
-                <div className="flex flex-wrap -m-4">
-                    {productos.map((producto) => (
-                        <div key={producto.id_producto} className="block rounded-lg p-4 shadow-sm lg:w-1/4 md:w-1/2 w-full relative">
-                            <div className="overflow-hidden rounded-md h-56 w-full">
-                                {producto.imagen ? (
-                                    <img
-                                        alt={producto.descripcion}
-                                        src={`data:image/jpeg;base64,${producto.imagen}`}
-                                        className="h-full w-full object-cover transition-transform duration-300 hover:scale-110"
-                                    />
-                                ) : (
-                                    <div className="h-full w-full bg-gray-200 flex items-center justify-center">
-                                        <span className="text-gray-500">Imagen no disponible</span>
-                                    </div>
-                                )}
-                            </div>
-
-                            <div className="mt-2 pb-12">
-                                <dl>
-                                    <div>
-                                        <dd className="text-sm text-gray-500">Stock: {producto.stock}</dd>
-                                    </div>
-                                    <div>
-                                        <dd className="font-medium">{producto.descripcion}</dd>
-                                    </div>
-                                    <div>
-                                        <dd className="font-medium">${producto.precio_venta}</dd>
-                                    </div>
-                                </dl>
-
-                                <button
-                                    className="absolute bottom-4 right-4 bg-violet-500 text-white py-2 px-4 rounded text-sm hover:bg-violet-600"
-                                    onClick={() => addToCart({
-                                        id: producto.id_producto, // ID del producto
-                                        nombre: producto.descripcion, // Nombre del producto
-                                        precio: producto.precio_venta // Precio del producto
-                                    })}
-                                >
-                                    Agregar al carrito
-                                </button>
-                            </div>
-                        </div>
-                    ))}
-                </div>
+        <div className="bg-white rounded-lg overflow-hidden shadow-md flex flex-col">
+            <div className="overflow-hidden rounded-t-lg h-48 w-full">
+                {producto.imagen ? (
+                    <img
+                        alt={producto.descripcion}
+                        src={`data:image/jpeg;base64,${producto.imagen}`}
+                        className="h-full w-full object-cover transition-transform duration-300 hover:scale-110"
+                    />
+                ) : (
+                    <div className="h-full w-full bg-gray-200 flex items-center justify-center">
+                        <span className="text-gray-500">Imagen no disponible</span>
+                    </div>
+                )}
             </div>
-        </section>
+
+            <div className="p-4 flex-1 flex flex-col justify-between">
+                <div className="space-y-2">
+                    <p className="text-sm text-gray-500">Stock: {producto.stock}</p>
+                    <p className="font-medium text-lg text-gray-900">{producto.descripcion}</p>
+                    <p className="text-lg font-semibold text-green-600">
+                        {formatCurrency(producto.precio_venta)}
+                    </p>
+                </div>
+
+                <form onSubmit={handleAgree} className="mt-4">
+                    <button
+                        className="w-full bg-violet-400 text-white py-2 rounded-lg hover:bg-violetPalette-dark transition duration-300"
+                        type="submit"
+                    >
+                        Agregar al Carrito
+                    </button>
+                </form>
+            </div>
+        </div>
     );
 };
 
-export default Section;
+export default InicioProductDetalle;

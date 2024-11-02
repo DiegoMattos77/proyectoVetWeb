@@ -3,14 +3,18 @@ import { Link } from "react-router-dom";
 import { FaUserCircle, FaShoppingCart } from "react-icons/fa";
 import LogoVet from "../img/LogoVet.png";
 import { getUserName, logout } from "../services/AuthService";
+import { useCart } from "./CotextoCarrito";
+import MiCarrito from "../views/MiCarrito";
 
 const Header = () => {
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const [isAccountMenuOpen, setIsAccountMenuOpen] = useState(false);
     const [isCartOpen, setIsCartOpen] = useState(false);
     const [nombre, setNombre] = useState<string | null>(null);
-    const [cartItems, setCartItems] = useState<{ id: number; nombre: string; precio: number }[]>([]);
+    const [cartItems] = useState<{ id: number; nombre: string; precio: number }[]>([]);
     const [total, setTotal] = useState(0);
+    const { cartCount } = useCart();
+
 
     useEffect(() => {
         const nombreUsuario = getUserName();
@@ -46,10 +50,10 @@ const Header = () => {
         setIsCartOpen(false);
     };
 
-    // Función para agregar productos al carrito
-    const addToCart = (product: { id: number; nombre: string; precio: number }) => {
-        setCartItems((prevItems) => [...prevItems, product]);
-    };
+
+
+    const openCart = () => setIsCartOpen(true); // Función para abrir el carrito
+    const closeCart = () => setIsCartOpen(false); // Función para cerrar el carrito
 
     return (
         <header className="bg-violet-400">
@@ -69,20 +73,18 @@ const Header = () => {
                     </div>
 
                     <div className="flex items-center gap-4">
-                        {/* Carrito */}
-                        <div className="relative">
-                            <button
-                                className="text-violetPalette-muted flex items-center"
-                                onClick={toggleCart}
-                            >
-                                <FaShoppingCart size={40} />
-                                {cartItems.length > 0 && (
-                                    <span className="absolute top-0 right-0 bg-red-500 text-white rounded-full px-1 py-0.9 text-xs">
-                                        {cartItems.length}
-                                    </span>
-                                )}
-                            </button>
-                        </div>
+
+                        <button
+                            onClick={openCart}
+                            className="relative rounded-full bg-gray-800 p-1 text-gray-400 hover:text-white focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-gray-800"
+                        >
+                            <FaShoppingCart aria-hidden="true" className="h-6 w-6" />
+                            {cartCount > 0 && (
+                                <span className="absolute -top-2 -right-2 flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-xs text-white">
+                                    {cartCount}
+                                </span>
+                            )}
+                        </button>
 
                         {/* Login o Mi Cuenta */}
                         {!nombre ? (
@@ -186,6 +188,11 @@ const Header = () => {
                     </div>
                 )}
             </div>
+            {isCartOpen && (
+                <div className="fixed inset-0 flex items-center justify-center z-50 bg-black bg-opacity-50">
+                    <MiCarrito onClose={closeCart} /> {/* Pasar onClose al carrito */}
+                </div>
+            )}
         </header>
     );
 };

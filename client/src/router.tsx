@@ -3,7 +3,8 @@ import MainLayout from "./layouts/MainLayout";
 import Login, { action as actionLogin } from "./components/Login";
 import RegistroClientes, { action as actionRegistroClientes } from "./components/RegistroClientes";
 import EditarClientes, { action as actionEditarCliente, loader as loaderEditarCliente } from "./components/EditarCliente"
-import Section, { loader as loaderProductos } from "./components/Section";
+import Inicio, { loader as loaderProductos } from "./views/Inicio";
+import MiCarrito from "./views/MiCarrito";
 
 
 export const router = createBrowserRouter([
@@ -13,7 +14,7 @@ export const router = createBrowserRouter([
         children: [
             {
                 index: true,
-                element: <Section />,
+                element: <Inicio />,
                 loader: loaderProductos
             }
         ],
@@ -34,6 +35,12 @@ export const router = createBrowserRouter([
         element: <EditarClientes />,
         action: actionEditarCliente,
         loader: loaderEditarCliente
+    },
+    {
+        path: '/MiCarrito',
+        element: <MiCarrito onClose={function (): void {
+            throw new Error('Function not implemented.');
+        }} />,
     },
 
 ]);
