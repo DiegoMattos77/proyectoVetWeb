@@ -35,7 +35,7 @@ const RegistroClientes = ({ registroCliente }: RegistroFormProps) => {
 
     return (
         <div className="max-w-md mx-auto mt-10 p-6 bg-white rounded-lg shadow-md">
-            <h2 className="text-2xl font-bold mb-6 text-center text-violetPalette-muted">Registro de Cliente</h2>
+            <h2 className="text-2xl font-bold mb-6 text-center text-violetPalette-btnColor">Registro de Cliente</h2>
             <Form method="POST">
                 <div className="mb-4">
                     <label className="block text-gray-700">Nombre</label>
@@ -143,7 +143,7 @@ const RegistroClientes = ({ registroCliente }: RegistroFormProps) => {
 
                 <button
                     type="submit"
-                    className="w-full bg-violetPalette-muted hover:bg-violet-800 text-white py-2.5 rounded-lg text-center font-medium transition duration-150 ease-in-out shadow-md"
+                    className="w-full px-8 py-3 font-semibold rounded-md bg-violetPalette-btnHover text-white hover:bg-violetPalette-btnColor transition duration-300"
                 >
                     Registrarse
                 </button>

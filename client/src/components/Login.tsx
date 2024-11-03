@@ -67,14 +67,14 @@ const LoginForm = ({ login }: LoginFormProps) => {
                     <div className="space-y-2">
                         <button
                             type="submit"
-                            className="w-full px-8 py-3 font-semibold rounded-md bg-violetPalette-muted text-white"
+                            className="w-full px-8 py-3 font-semibold rounded-md bg-violetPalette-btnHover text-white hover:bg-violetPalette-btnColor transition duration-300"
                         >
                             Login
                         </button>
                         {error && <ErrorMsj>{error}</ErrorMsj>}
                         <p className="px-6 text-sm text-center text-gray-600">
                             ¿Aún no tienes una cuenta?
-                            <Link to="/registrarme" className="hover:underline text-violetPalette-muted">
+                            <Link to="/registrarme" className="hover:underline text-violetPalette-btnColor">
                                 Registrarse
                             </Link>
                         </p>

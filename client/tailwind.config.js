@@ -13,6 +13,8 @@ module.exports = {
           accent: '#D291BC',
           muted: '#0098da',
           headerColor: '#cbd5e1',
+          btnColor: '#312e81',
+          btnHover: '#4f46e5'
         },
       },
     },

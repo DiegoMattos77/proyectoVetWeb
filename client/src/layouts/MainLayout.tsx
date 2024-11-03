@@ -13,6 +13,7 @@ const MainLayout = () => {
                 <ProductDetail />
                 <Outlet />
             </div>
+
             <Inicio />
             <Footer />
         </>

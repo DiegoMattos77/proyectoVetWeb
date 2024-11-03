@@ -18,7 +18,8 @@ const Inicio: React.FC = () => {
     const data = useLoaderData() as Productos[] || []; // Usa array vacío si `data` es undefined
 
     return (
-        <section className="container mx-auto px-4 py-8">
+
+        <section className="container mx-auto px-4 py-8 mt-40 pt-5">
 
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
                 {data.length > 0 ? (
@@ -26,7 +27,7 @@ const Inicio: React.FC = () => {
                         <InicioProductDetalle key={producto.id_producto} producto={producto} />
                     ))
                 ) : (
-                    <p className="text-center text-gray-500">No hay productos disponibles</p>
+                    <p className="text-center text-gray-500"></p>
                 )}
             </div>
         </section>

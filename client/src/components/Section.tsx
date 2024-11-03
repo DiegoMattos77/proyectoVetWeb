@@ -26,12 +26,12 @@ const InicioProductDetalle = ({ producto }: ProductoDetalles) => {
 
     return (
         <div className="bg-white rounded-lg overflow-hidden shadow-md flex flex-col">
-            <div className="overflow-hidden rounded-t-lg h-48 w-full">
+            <div className="overflow-hidden rounded-t-lg h-48 w-full bg-white">
                 {producto.imagen ? (
                     <img
                         alt={producto.descripcion}
-                        src={`data:image/jpeg;base64,${producto.imagen}`}
-                        className="h-full w-full object-cover transition-transform duration-300 hover:scale-110"
+                        src={`data:image/png;base64,${producto.imagen}`}
+                        className="h-full w-full object-contain bg-white p-1 transition-transform duration-300 hover:scale-110"
                     />
                 ) : (
                     <div className="h-full w-full bg-gray-200 flex items-center justify-center">
@@ -51,7 +51,7 @@ const InicioProductDetalle = ({ producto }: ProductoDetalles) => {
 
                 <form onSubmit={handleAgree} className="mt-4">
                     <button
-                        className="w-full bg-violet-400 text-white py-2 rounded-lg hover:bg-violetPalette-dark transition duration-300"
+                        className="w-full bg-violetPalette-btnHover text-white py-2 rounded-lg hover:bg-violetPalette-btnColor transition duration-300"
                         type="submit"
                     >
                         Agregar al Carrito

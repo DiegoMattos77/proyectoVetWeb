@@ -56,18 +56,19 @@ const Header = () => {
     const closeCart = () => setIsCartOpen(false); // Función para cerrar el carrito
 
     return (
-        <header className="bg-violet-400">
-            <div className="mx-auto max-w-screen-xl px-4 sm:px-6 lg:px-8 h-24">
-                <div className="flex h-24 items-center justify-between">
-                    <div className="md:flex md:items-center md:justify-center md:gap-12 w-20 h-20 md:w-32 md:h-32 mt-4 md:mt-0">
-                        <img src={LogoVet} alt="Logo" className="h-12 max-h-full md:h-16 max-w-full object-contain small-logo" />
+        <header className="fixed top-0 left-0 w-full bg-violetPalette-btnColor shadow-lg z-50 m">
+            <div className="mx-auto max-w-screen-xl px-4 sm:px-6 lg:px-8 h-18">
+                <div className="flex h-full items-center justify-between">
+                    <div className="md:flex md:items-center md:justify-center md:gap-8 w-24 h-20 md:w-32 md:h-32 mt-2 md:mt-0">
+                        <img src={LogoVet} alt="Logo" className="h-24 max-h-full md:h-20 max-w-full object-contain small-logo shadow-md" />
                     </div>
+
 
                     <div className="hidden md:block">
                         <nav aria-label="Global">
                             <ul className="flex items-center gap-6 text-sm">
-                                <li><a className="text-gray-800 transition hover:text-gray-500/75" href="#">About</a></li>
-                                <li><a className="text-gray-800 transition hover:text-gray-500/75" href="#">Careers</a></li>
+                                <li><a className="text-gray-50 transition hover:text-gray-500/75" href="#">About</a></li>
+                                <li><a className="text-gray-50 transition hover:text-gray-500/75" href="#">Careers</a></li>
                             </ul>
                         </nav>
                     </div>
@@ -76,7 +77,7 @@ const Header = () => {
 
                         <button
                             onClick={openCart}
-                            className="relative rounded-full bg-gray-800 p-1 text-gray-400 hover:text-white focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-gray-800"
+                            className="relative rounded-full bg-violetPalette-muted p-1 text-gray-50 hover:text-white focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-gray-200"
                         >
                             <FaShoppingCart aria-hidden="true" className="h-6 w-6" />
                             {cartCount > 0 && (
@@ -188,12 +189,14 @@ const Header = () => {
                     </div>
                 )}
             </div>
-            {isCartOpen && (
-                <div className="fixed inset-0 flex items-center justify-center z-50 bg-black bg-opacity-50">
-                    <MiCarrito onClose={closeCart} /> {/* Pasar onClose al carrito */}
-                </div>
-            )}
-        </header>
+            {
+                isCartOpen && (
+                    <div className="fixed inset-0 flex items-center justify-center z-50 bg-black bg-opacity-50">
+                        <MiCarrito onClose={closeCart} /> {/* Pasar onClose al carrito */}
+                    </div>
+                )
+            }
+        </header >
     );
 };
 
