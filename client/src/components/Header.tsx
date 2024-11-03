@@ -96,7 +96,7 @@ const Header = () => {
                             </div>
                         ) : (
                             <>
-                                <span className="text-gray-700 text-sm">Bienvenido {nombre}</span>
+                                <span className="text-gray-50 text-sm">Bienvenido {nombre}</span>
 
                                 <div className="relative flex flex-col items-center">
                                     <button
@@ -105,7 +105,7 @@ const Header = () => {
                                     >
                                         <FaUserCircle size={28} />
                                     </button>
-                                    <span className="text-xs text-gray-500">Mi Cuenta</span>
+                                    <span className="text-xs text-gray-50">Mi Cuenta</span>
 
                                     {isAccountMenuOpen && (
                                         <div
