@@ -6,7 +6,7 @@ import { getUserName, logout } from "../services/AuthService";
 import { useCart } from "./CotextoCarrito";
 import MiCarrito from "../views/MiCarrito";
 
-const Header = () => {
+const Header: React.FC = () => {
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const [isAccountMenuOpen, setIsAccountMenuOpen] = useState(false);
     const [isCartOpen, setIsCartOpen] = useState(false);
@@ -43,6 +43,7 @@ const Header = () => {
         logout();
         setNombre(null);
         setIsAccountMenuOpen(false);
+        window.location.href = "/"
     };
 
     const handleCheckout = () => {
@@ -75,17 +76,7 @@ const Header = () => {
 
                     <div className="flex items-center gap-4">
 
-                        <button
-                            onClick={openCart}
-                            className="relative rounded-full bg-violetPalette-muted p-1 text-gray-50 hover:text-white focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-gray-200"
-                        >
-                            <FaShoppingCart aria-hidden="true" className="h-6 w-6" />
-                            {cartCount > 0 && (
-                                <span className="absolute -top-2 -right-2 flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-xs text-white">
-                                    {cartCount}
-                                </span>
-                            )}
-                        </button>
+
 
                         {/* Login o Mi Cuenta */}
                         {!nombre ? (
@@ -96,6 +87,17 @@ const Header = () => {
                             </div>
                         ) : (
                             <>
+                                <button
+                                    onClick={openCart}
+                                    className="relative rounded-full bg-violetPalette-muted p-1 text-gray-50 hover:text-white focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-gray-200"
+                                >
+                                    <FaShoppingCart aria-hidden="true" className="h-6 w-6" />
+                                    {cartCount > 0 && (
+                                        <span className="absolute -top-2 -right-2 flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-xs text-white">
+                                            {cartCount}
+                                        </span>
+                                    )}
+                                </button>
                                 <span className="text-gray-50 text-sm">Bienvenido {nombre}</span>
 
                                 <div className="relative flex flex-col items-center">
@@ -144,8 +146,6 @@ const Header = () => {
                 {isMenuOpen && (
                     <nav aria-label="Mobile" className="md:hidden bg-white w-full absolute top-16 left-0 shadow-lg">
                         <ul className="flex flex-col items-center gap-6 text-sm py-4">
-                            <li><a className="text-gray-500 transition hover:text-gray-500/75" href="#">About</a></li>
-                            <li><a className="text-gray-500 transition hover:text-gray-500/75" href="#">Careers</a></li>
                         </ul>
                     </nav>
                 )}

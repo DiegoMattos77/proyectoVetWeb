@@ -1,7 +1,9 @@
+import { useState, useEffect } from "react";
 import { Productos } from "../types/index";
 import { formatCurrency } from "../helpers/index";
 import Swal from "sweetalert2";
 import { useCart } from "./CotextoCarrito";
+import { getUserName } from "../services/AuthService";
 
 type ProductoDetalles = {
     producto: Productos;
@@ -9,10 +11,19 @@ type ProductoDetalles = {
 
 const InicioProductDetalle = ({ producto }: ProductoDetalles) => {
     const { agregarAlCarrito } = useCart();
+    const [userName, setUserName] = useState<string | null>(null);
+
+    useEffect(() => {
+        const nombreUsuario = getUserName();
+        setUserName(nombreUsuario);
+    }, []);
 
     const handleAgree = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
         agregarAlCarrito(producto);
+
+        console.log("Producto agregado al carrito:", producto);
+        console.log("Nombre de usuario:", userName);
 
         await Swal.fire({
             title: "¡Agregado!",
@@ -20,6 +31,19 @@ const InicioProductDetalle = ({ producto }: ProductoDetalles) => {
             icon: "success",
             confirmButtonColor: "#facc15",
             timer: 1500,
+            showConfirmButton: false
+        });
+    };
+
+    const handleAdvisor = async (e: React.MouseEvent<HTMLButtonElement>) => {
+        e.preventDefault();
+
+        await Swal.fire({
+            title: "¡..Ups!",
+            text: "Debes iniciar sesión para comprar",
+            icon: "warning",
+            confirmButtonColor: "#facc15",
+            timer: 1600,
             showConfirmButton: false
         });
     };
@@ -48,15 +72,23 @@ const InicioProductDetalle = ({ producto }: ProductoDetalles) => {
                         {formatCurrency(producto.precio_venta)}
                     </p>
                 </div>
-
-                <form onSubmit={handleAgree} className="mt-4">
+                {!userName ? (
                     <button
                         className="w-full bg-violetPalette-btnHover text-white py-2 rounded-lg hover:bg-violetPalette-btnColor transition duration-300"
-                        type="submit"
+                        onClick={handleAdvisor}
                     >
                         Agregar al Carrito
                     </button>
-                </form>
+                ) : (
+                    <form onSubmit={handleAgree} className="mt-4">
+                        <button
+                            className="w-full bg-violetPalette-btnHover text-white py-2 rounded-lg hover:bg-violetPalette-btnColor transition duration-300"
+                            type="submit"
+                        >
+                            Agregar al Carrito
+                        </button>
+                    </form>
+                )}
             </div>
         </div>
     );

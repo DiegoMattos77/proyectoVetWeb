@@ -1,7 +1,9 @@
-import { Link, Form, ActionFunctionArgs, useActionData, redirect } from "react-router-dom";
+import { Link, Form, ActionFunctionArgs } from "react-router-dom";
 import { login } from '../services/AuthService';
 import { LoginCliente } from '../types/index';
-import ErrorMsj from "./ErrorMsj";
+
+import { toast } from "react-toastify"
+
 
 type LoginFormProps = {
     login?: LoginCliente;
@@ -11,14 +13,17 @@ export async function action({ request }: ActionFunctionArgs) {
     const data = Object.fromEntries(await request.formData());
 
     if (Object.values(data).some(value => value === "")) {
-        return "Todos los campos son obligatorios";
+        toast.error("Todos los campos son obligatorios");
+        return null;
     }
 
     try {
         await login(data);
-        return redirect('/');
+        return window.location.href = "/"
+
     } catch (error: unknown) {
         if (error instanceof Error) {
+            toast.error("Verifique los datos!");
             return error.message;
         }
         return "Error inesperado";
@@ -26,7 +31,7 @@ export async function action({ request }: ActionFunctionArgs) {
 }
 
 const LoginForm = ({ login }: LoginFormProps) => {
-    const error = useActionData() as string;
+
 
     return (
         <div className="flex items-center justify-center min-h-screen bg-gray-100">
@@ -66,12 +71,13 @@ const LoginForm = ({ login }: LoginFormProps) => {
                     </div>
                     <div className="space-y-2">
                         <button
+
                             type="submit"
                             className="w-full px-8 py-3 font-semibold rounded-md bg-violetPalette-btnHover text-white hover:bg-violetPalette-btnColor transition duration-300"
                         >
                             Login
                         </button>
-                        {error && <ErrorMsj>{error}</ErrorMsj>}
+
                         <p className="px-6 text-sm text-center text-gray-600">
                             ¿Aún no tienes una cuenta?
                             <Link to="/registrarme" className="hover:underline text-violetPalette-btnColor">

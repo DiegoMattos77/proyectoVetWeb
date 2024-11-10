@@ -1,5 +1,6 @@
-import { createContext, useContext, useState, ReactNode } from "react";
+import { createContext, useContext, useState, ReactNode, useEffect } from "react";
 import { Productos } from "../types/index";
+import { getUserName } from "../services/AuthService"; // Asume que esta función obtiene el usuario activo
 
 interface CartItem extends Productos {
     cantidad: number;
@@ -8,7 +9,6 @@ interface CartItem extends Productos {
 interface CartContextProps {
     cartCount: number;
     carrito: CartItem[];
-    totalPrecio: number;
     agregarAlCarrito: (producto: Productos) => void;
     eliminarDelCarrito: (codProducto: number) => void;
     limpiarCarrito: () => void;
@@ -17,44 +17,59 @@ interface CartContextProps {
 const CartContext = createContext<CartContextProps | undefined>(undefined);
 
 export const CartProvider = ({ children }: { children: ReactNode }) => {
-    const [carrito, setCarrito] = useState<CartItem[]>(() => {
-        const carritoGuardado = localStorage.getItem("carrito");
-        return carritoGuardado ? JSON.parse(carritoGuardado) : [];
-    });
+    const [carrito, setCarrito] = useState<CartItem[]>([]);
+    const [user, setUser] = useState<string | null>(null);
 
-    const cartCount = carrito.reduce((count, item) => count + item.cantidad, 0);
-    const totalPrecio = carrito.reduce((total, item) => total + item.precio_venta * item.cantidad, 0);
+    useEffect(() => {
+        const nombreUsuario = getUserName();
+        setUser(nombreUsuario);
+
+        if (nombreUsuario) {
+            const carritoGuardado = localStorage.getItem(`carrito_${nombreUsuario}`);
+            setCarrito(carritoGuardado ? JSON.parse(carritoGuardado) : []);
+        }
+    }, [user]);
+
+    // Guardar el carrito en localStorage cada vez que el carrito o el usuario cambien
+    useEffect(() => {
+        if (user) {
+            localStorage.setItem(`carrito_${user}`, JSON.stringify(carrito));
+        }
+    }, [carrito, user]);
+
+    const cartCount = carrito.reduce((total, item) => total + item.cantidad, 0);
+
+    const guardarCarrito = (nuevoCarrito: CartItem[]) => {
+        setCarrito(nuevoCarrito);
+        if (user) {
+            localStorage.setItem(`carrito_${user}`, JSON.stringify(nuevoCarrito));
+        }
+    };
 
     const agregarAlCarrito = (producto: Productos) => {
-        setCarrito((prevCarrito) => {
-            const productoExistente = prevCarrito.find((p) => p.id_producto === producto.id_producto);
+        const productoExistente = carrito.find((p) => p.id_producto === producto.id_producto);
 
-            if (productoExistente) {
-                return prevCarrito.map((p) =>
-                    p.id_producto === producto.id_producto ? { ...p, cantidad: p.cantidad + 1 } : p
-                );
-            } else {
-                const nuevoProducto = { ...producto, cantidad: 1 };
-                return [...prevCarrito, nuevoProducto];
-            }
-        });
-        localStorage.setItem("carrito", JSON.stringify(carrito));
+        if (productoExistente) {
+            const nuevoCarrito = carrito.map((p) =>
+                p.id_producto === producto.id_producto ? { ...p, cantidad: p.cantidad + 1 } : p
+            );
+            guardarCarrito(nuevoCarrito);
+        } else {
+            const nuevoCarrito = [...carrito, { ...producto, cantidad: 1 }];
+            guardarCarrito(nuevoCarrito);
+        }
     };
 
     const eliminarDelCarrito = (codProducto: number) => {
-        setCarrito((prevCarrito) => {
-            const nuevoCarrito = prevCarrito
-                .map((p) => (p.id_producto === codProducto ? { ...p, cantidad: p.cantidad - 1 } : p))
-                .filter((p) => p.cantidad > 0);
+        const nuevoCarrito = carrito
+            .map((p) => (p.id_producto === codProducto ? { ...p, cantidad: p.cantidad - 1 } : p))
+            .filter((p) => p.cantidad > 0);
 
-            localStorage.setItem("carrito", JSON.stringify(nuevoCarrito));
-            return nuevoCarrito;
-        });
+        guardarCarrito(nuevoCarrito);
     };
 
     const limpiarCarrito = () => {
-        setCarrito([]);
-        localStorage.removeItem("carrito");
+        guardarCarrito([]);
     };
 
     return (
@@ -62,7 +77,6 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
             value={{
                 cartCount,
                 carrito,
-                totalPrecio,
                 agregarAlCarrito,
                 eliminarDelCarrito,
                 limpiarCarrito,

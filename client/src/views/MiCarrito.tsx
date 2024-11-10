@@ -2,6 +2,9 @@ import { Link } from "react-router-dom";
 import { useCart } from "../components/CotextoCarrito";
 import PerfilCarrito from "../components/PerfilCarrito";
 import { formatCurrency } from "../helpers";
+import { getUserName } from "../services/AuthService";
+import { useState, useEffect } from "react";
+
 
 interface MiCarritoProps {
     onClose: () => void;
@@ -13,6 +16,14 @@ const MiCarrito: React.FC<MiCarritoProps> = ({ onClose }) => {
     const calcularTotal = () => {
         return carrito.reduce((total, producto) => total + producto.precio_venta * producto.cantidad, 0);
     };
+
+    const [nombre, setNombre] = useState<string | null>(null);
+
+    useEffect(() => {
+        const nombreUsuario = getUserName();
+        setNombre(nombreUsuario);
+    }, []);
+
 
     return (
         <div
@@ -39,11 +50,20 @@ const MiCarrito: React.FC<MiCarritoProps> = ({ onClose }) => {
             </button>
 
             {carrito.length === 0 ? (
-                <p className="text-center text-xl font-bold text-gray-800">Tu carrito está vacío</p>
+                <>
+                    <div>
+                        <p className="text-center text-3xl font-bold tracking-tight text-blue-500 mb-2">Hola {nombre}!</p>
+                    </div>
+                    <p className="text-center text-xl font-bold text-gray-800">Tu carrito está vacío</p>
+                </>
+
             ) : (
                 <>
+                    <p className="text-center"><p className="text-xl text-blue-700">Hola {nombre}!</p>Estos son tus productos seleccionados</p>
                     {carrito.map((producto) => (
-                        <PerfilCarrito key={producto.id_producto} producto={producto} />
+                        <div key={producto.id_producto}>
+                            <PerfilCarrito producto={producto} /></div>
+
                     ))}
                     <div className="mt-6 flex justify-between items-center border-t pt-4">
                         <span className="text-lg font-semibold">Total:</span>
