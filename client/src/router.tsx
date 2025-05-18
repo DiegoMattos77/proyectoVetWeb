@@ -5,6 +5,8 @@ import RegistroClientes, { action as actionRegistroClientes } from "./components
 import EditarClientes, { action as actionEditarCliente, loader as loaderEditarCliente } from "./components/EditarCliente"
 import Inicio, { loader as loaderProductos } from "./views/Inicio";
 import MiCarrito from "./views/MiCarrito";
+import SolicitarPassword from "./components/SolicitarPassword";
+import RestablecerPassword from "./components/RestablecerPassword";
 
 
 export const router = createBrowserRouter([
@@ -42,5 +44,13 @@ export const router = createBrowserRouter([
             throw new Error('Function not implemented.');
         }} />,
     },
+    {
+        path: "/solicitar-password",
+        element: <SolicitarPassword />
+    },
+    {
+        path: "/restablecer",
+        element: <RestablecerPassword />
+    }
 
 ]);

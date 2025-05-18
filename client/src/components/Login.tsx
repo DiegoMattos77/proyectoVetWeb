@@ -69,6 +69,13 @@ const LoginForm = ({ login }: LoginFormProps) => {
                             />
                         </div>
                     </div>
+
+                    <p className="px-6 text-sm text-center text-gray-600">
+                        <Link to="/solicitar-password" className="hover:underline text-violetPalette-btnColor">
+                            ¿Ha olvidado su contraseña?                      
+                        </Link>
+                    </p>
+
                     <div className="space-y-2">
                         <button
 
