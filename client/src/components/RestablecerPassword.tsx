@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useSearchParams, useNavigate, Link } from "react-router-dom";
 import axios from "axios";
-
+// aqui importamos el css de tailwind
 const RestablecerPassword = () => {
     const [searchParams] = useSearchParams();
     const token = searchParams.get("token");
