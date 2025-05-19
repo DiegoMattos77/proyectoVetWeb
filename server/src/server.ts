@@ -7,6 +7,7 @@ import routerDetallePedidos from "./router/routerDetallePedidos";
 import db from './config/db';
 import cors from 'cors';
 
+
 const server = Express();
 
 const corsOptions = {
@@ -23,7 +24,7 @@ server.use(Express.json());
 server.use(Express.urlencoded({ extended: true }));
 
 server.use('/api/clientes', routerCliente);
-server.use('/api/login', authRouter);
+server.use('/api/auth', authRouter);
 server.use('/api/productos', routerProductos);
 server.use('/api/pedidos', routerPedidos);
 server.use('/api/detalle', routerDetallePedidos);
