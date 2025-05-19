@@ -1,14 +1,23 @@
 import { Request, Response } from "express";
 import cliente from "../models/Clientes.models";
+import bcrypt from "bcryptjs";
 
 //Creo un nuevo cliente
 export const createClient = async (req: Request, res: Response) => {
     try {
-        const client = await cliente.create(req.body);
+        // Encripta la contraseña antes de guardar
+        const hashedPassword = await bcrypt.hash(req.body.password, 10);
+
+        // Crea el cliente usando la contraseña encriptada
+        const client = await cliente.create({
+            ...req.body,
+            password: hashedPassword
+        });
+
         res.status(201).json(client);
     } catch (error) {
         console.error('Error al crear un cliente', error);
-        res.status(500).json({ error: error.messaje });
+        res.status(500).json({ error: error.message });
     }
 };
 
