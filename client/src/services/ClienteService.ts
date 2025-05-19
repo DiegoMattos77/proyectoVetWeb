@@ -2,6 +2,7 @@ import axios from "axios";
 import { safeParse } from "valibot";
 import { DrafClienteSchema, ClienteSchema, ClienteCompleto } from '../types/index';
 
+
 type ClienteData = {
     [key: string]: FormDataEntryValue;
 };
