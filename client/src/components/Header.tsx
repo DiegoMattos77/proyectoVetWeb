@@ -1,10 +1,15 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Link } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { FaUserCircle, FaShoppingCart } from "react-icons/fa";
 import LogoVet from "../img/LogoVet.png";
 import { getUserName, logout } from "../services/AuthService";
 import { useCart } from "./CotextoCarrito";
 import MiCarrito from "../views/MiCarrito";
+import { obtenerProductos } from "../services/ProductosService";
+import { Productos } from "../types/index";
+import { FaWhatsapp, FaStore } from "react-icons/fa"; // Agrega este import al inicio
+
 
 const Header: React.FC = () => {
     const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -14,6 +19,48 @@ const Header: React.FC = () => {
     const [cartItems] = useState<{ id: number; nombre: string; precio: number }[]>([]);
     const [total, setTotal] = useState(0);
     const { cartCount } = useCart();
+    const [busqueda, setBusqueda] = useState("");
+    const [sugerencias, setSugerencias] = useState<Productos[]>([]);
+    const [mostrarDropdown, setMostrarDropdown] = useState(false);
+    const inputRef = useRef<HTMLInputElement>(null);
+    const navigate = useNavigate();
+
+    // Autocompletado: buscar sugerencias mientras se escribe
+    useEffect(() => {
+        if (busqueda.length === 0) {
+            setSugerencias([]);
+            setMostrarDropdown(false);
+            return;
+        }
+        const timeout = setTimeout(() => {
+            obtenerProductos(busqueda).then(res => {
+                setSugerencias(res);
+                setMostrarDropdown(true);
+            });
+        }, 300);
+        return () => clearTimeout(timeout);
+    }, [busqueda]);
+
+    // Al seleccionar una sugerencia
+    const handleSugerenciaClick = (producto: Productos) => {
+        console.log("Click en sugerencia", producto.id_producto);
+        setBusqueda("");
+        setMostrarDropdown(false);
+        navigate(`/productos/${producto.id_producto}`); // Navega al detalle del producto
+    };
+
+    // Cerrar dropdown si se hace click fuera
+    useEffect(() => {
+        function handleClickOutside(event: MouseEvent) {
+            if (inputRef.current && !inputRef.current.contains(event.target as Node)) {
+                setMostrarDropdown(false);
+            }
+        }
+        document.addEventListener("mousedown", handleClickOutside);
+        return () => document.removeEventListener("mousedown", handleClickOutside);
+    }, []);
+
+    
 
 
     useEffect(() => {
@@ -58,21 +105,104 @@ const Header: React.FC = () => {
 
     return (
         <header className="fixed top-0 left-0 w-full bg-violetPalette-btnColor shadow-lg z-50 m">
+            
             <div className="mx-auto max-w-screen-xl px-4 sm:px-6 lg:px-8 h-18">
                 <div className="flex h-full items-center justify-between">
                     <div className="md:flex md:items-center md:justify-center md:gap-8 w-24 h-20 md:w-32 md:h-32 mt-2 md:mt-0">
                         <img src={LogoVet} alt="Logo" className="h-24 max-h-full md:h-20 max-w-full object-contain small-logo shadow-md" />
                     </div>
 
-
-                    <div className="hidden md:block">
-                        <nav aria-label="Global">
-                            <ul className="flex items-center gap-6 text-sm">
-                                <li><a className="text-gray-50 transition hover:text-gray-500/75" href="#">About</a></li>
-                                <li><a className="text-gray-50 transition hover:text-gray-500/75" href="#">Careers</a></li>
-                            </ul>
-                        </nav>
+                    <div className="w-full bg-violetPalette-btnColor text-white text-sm flex flex-wrap justify-center items-center gap-8 py-2">
+                        {/* Bloque Atención al Cliente */}
+                        <div className="flex flex-col items-center bg-violet-800 px-6 py-2 rounded shadow min-w-[180px]">
+                            <div className="flex items-center gap-2 mb-1">
+                                <FaWhatsapp className="text-green-400 text-xl" />
+                                <span className="font-semibold">Atención al Cliente</span>
+                            </div>
+                            <a
+                                href="https://wa.me/3764379723"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="text-lg font-bold text-white  hover:text-yellow-400 transition"
+                            >
+                                +54 3764379723
+                            </a>
+                        </div>
+                        {/* Bloque Nuestros Locales */}
+                        <div className="flex flex-col items-center bg-violet-800 px-6 py-2 rounded shadow min-w-[180px]">
+                            <div className="flex items-center gap-2 mb-1">
+                                <FaStore className="text-yellow-300 text-xl" />
+                                <span className="font-semibold">Nuestros Locales</span>
+                            </div>
+                            <a
+                                href="/locales"
+                                className="text-lg font-bold text-white underline hover:text-yellow-400 transition"
+                            >
+                                Ver Locales
+                            </a>
+                        </div>
                     </div>
+
+                    {/* Input de búsqueda con dropdown */}
+                    <form
+                        onSubmit={e => {
+                            e.preventDefault();
+                            if (busqueda.trim() !== "") {
+                                navigate(`/productos?busqueda=${encodeURIComponent(busqueda)}`);
+                                setMostrarDropdown(false);
+                            }
+                        }}
+                        className="flex mr-4 relative"
+                        autoComplete="off"
+                    >
+                        <input
+                            ref={inputRef}
+                            type="text"
+                            name="busqueda" // <-- agrega esto
+                            placeholder="Buscar productos..."
+                            value={busqueda}
+                            onChange={e => setBusqueda(e.target.value)}
+                            className="rounded-l px-6 py-2 text-black focus:outline-none"
+                            onFocus={() => busqueda && setMostrarDropdown(true)}
+                        />
+                        <button
+                            type="submit"
+                            className="bg-violet-900 px-4 py-2 rounded-r hover:bg-violet-600 transition text-white"
+                        >
+                            Buscar
+                        </button>
+                        {/* Dropdown de sugerencias */}
+                        {mostrarDropdown && sugerencias.length > 0 && (
+                            <ul className="absolute left-0 right-0 top-full bg-white border rounded shadow z-50 max-h-60 overflow-y-auto w-full">
+                                {sugerencias.map(producto => (
+                                    <li
+                                        key={producto.id_producto}
+                                        className="flex items-center gap-3 px-4 py-2 hover:bg-violet-100 cursor-pointer"
+                                        onMouseDown={() => handleSugerenciaClick(producto)}
+                                    >
+                                        {/* Imagen del producto */}
+                                        <img
+                                            src={producto.imagen ?
+                                                (producto.imagen.startsWith("data:") ? producto.imagen : `data:image/jpeg;base64,${producto.imagen}`)
+                                                : "/img/no-image.png"}
+                                            alt={producto.descripcion}
+                                            className="w-10 h-10 object-cover rounded"
+                                        />
+                                        {/* Info del producto */}
+                                        <div className="flex-1">
+                                            <div className="font-semibold">{producto.descripcion}</div>
+                                            <div className="text-xs text-gray-500">
+                                                Categoría #{producto.id_categoria}
+                                            </div>
+                                        </div>
+                                        {/* Precio */}
+                                        <div className="font-bold text-violet-700">${producto.precio_venta}</div>
+                                    </li>
+                                ))}
+                        </ul>
+                        )}
+                    </form>
+                  
 
                     <div className="flex items-center gap-4">
 

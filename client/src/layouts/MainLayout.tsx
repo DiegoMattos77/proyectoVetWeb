@@ -1,24 +1,17 @@
 import { Outlet } from 'react-router-dom'
 import Header from '../components/Header'
-import Inicio from '../views/Inicio'
 import Footer from '../components/Footer'
-import ProductDetail from '../views/ProductDetail'
-
 
 const MainLayout = () => {
     return (
         <>
             <Header />
-            <div>
-                <ProductDetail />
-                <Outlet />
-            </div>
-
-            <Inicio />
+            <main className="pt-24"> 
+            <Outlet />
+            </main>
             <Footer />
         </>
     )
 }
 
 export default MainLayout
-

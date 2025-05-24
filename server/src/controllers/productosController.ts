@@ -1,16 +1,38 @@
 import { Request, Response } from "express";
+import { Op } from "sequelize";
 import Productos from "../models/Productos.models";
 import Imagenes from "../models/Imagenes.models";
 
 // Función para convertir Blob a Base64
 const convertBlobToBase64 = (blob: Buffer): string => {
     return blob.toString('base64');
-
 };
 
-export const getProducto = async (_req: Request, res: Response) => {
+export const getProducto = async (req: Request, res: Response) => {
     try {
+        const { busqueda, categoria, nombre_categoria } = req.query;
+
+        // Construir el filtro de búsqueda si hay parámetro
+        const where: any = {};
+        if (busqueda) {
+            const palabras = (busqueda as string).split(" ");
+            where[Op.and] = palabras.map(palabra => ({
+                [Op.or]: [
+                    { descripcion: { [Op.like]: `%${palabra}%` } },
+                    // { marca: { [Op.like]: `%${palabra}%` } },
+                    // { categoria: { [Op.like]: `%${palabra}%` } }
+                ]
+            }));
+        }
+
+        // Filtrar por categoría si viene en la query
+        if (categoria) {
+            // Cambia 'categoria' por el nombre real del campo en tu modelo, por ejemplo 'id_categoria' o 'categoria'
+            where.id_categoria = categoria;
+        }
+
         const productos = await Productos.findAll({
+            where,
             include: [Imagenes],
         });
 
@@ -32,21 +54,6 @@ export const getProducto = async (_req: Request, res: Response) => {
         res.status(500).json({ error: error.message });
     }
 };
-
-// export const getProducto = async (_req: Request, res: Response) => {
-//     try {
-//         const productos = await Productos.findAll({
-//             attributes: ['id_producto', 'descripcion', 'id_proveedor', 'id_categoria', 'stock', 'stock_seguridad', 'estado', 'precio_compra', 'precio_venta', 'imagen']
-//         });
-
-//         // No se agregaron los atributos: imagen
-
-//         res.status(200).json(productos);
-//     } catch (error) {
-//         console.error('Error al obtener productos', error);
-//         res.status(500).json({ error: error.message });
-//     }
-// };
 
 // Obtener un producto por su ID (incluyendo la imagen en Base64)
 export const getProductoById = async (req: Request, res: Response) => {

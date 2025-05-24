@@ -7,6 +7,9 @@ import Inicio, { loader as loaderProductos } from "./views/Inicio";
 import MiCarrito from "./views/MiCarrito";
 import SolicitarPassword from "./components/SolicitarPassword";
 import RestablecerPassword from "./components/RestablecerPassword";
+import ProductosPage from "./views/Productos";
+import DetalleProducto from "./views/DetalleProducto"; // <-- Importa tu componente de detalle
+import Sucursalvet from "./views/Sucursal";
 
 
 export const router = createBrowserRouter([
@@ -18,7 +21,18 @@ export const router = createBrowserRouter([
                 index: true,
                 element: <Inicio />,
                 loader: loaderProductos
+            },
+
+            {
+                path: "/productos",
+                element: <ProductosPage />
+            },
+
+            {
+                path: "/productos/:id", // <-- Nueva ruta para detalle de producto
+                element: <DetalleProducto />
             }
+
         ],
 
     },
@@ -51,6 +65,10 @@ export const router = createBrowserRouter([
     {
         path: "/restablecer",
         element: <RestablecerPassword />
-    }
+    },
+    {
+        path: "/locales",
+        element: <Sucursalvet />
+      }
 
 ]);
