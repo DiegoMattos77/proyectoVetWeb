@@ -10,6 +10,8 @@ import RestablecerPassword from "./components/RestablecerPassword";
 import ProductosPage from "./views/Productos";
 import DetalleProducto from "./views/DetalleProducto"; // <-- Importa tu componente de detalle
 import Sucursalvet from "./views/Sucursal";
+import TerminosCondiciones from "./views/TerminosCondiciones";
+import PreguntasFrecuentes from "./views/PreguntasFrecuentes";
 
 
 export const router = createBrowserRouter([
@@ -31,6 +33,16 @@ export const router = createBrowserRouter([
             {
                 path: "/productos/:id", // <-- Nueva ruta para detalle de producto
                 element: <DetalleProducto />
+            },
+
+            {
+                path: "/terminos",
+                element: <TerminosCondiciones />
+            },
+
+            {
+                path: "/preguntas-frecuentes",
+                element: <PreguntasFrecuentes />
             }
 
         ],
@@ -69,6 +81,7 @@ export const router = createBrowserRouter([
     {
         path: "/locales",
         element: <Sucursalvet />
-      }
+      },
+    
 
 ]);

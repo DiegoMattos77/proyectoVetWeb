@@ -24,12 +24,12 @@ const Sucursalvet = () => {
                 </div>
                 <div className="flex items-center gap-2 mb-1">
                     <FaEnvelope className="text-violet-700" />
-                    <span>contacto@bacanes.com.ar</span>
+                    <span>contacto@vetweb.com.ar</span>
                 </div>
                 <div className="flex items-center gap-2 mb-1">
                     <FaWhatsapp className="text-green-500" />
                     <a
-                        href="https://wa.me/5491121656429"
+                        href="https://wa.me/543764379723"
                         target="_blank"
                         rel="noopener noreferrer"
                         className="underline hover:text-green-700"
@@ -39,7 +39,7 @@ const Sucursalvet = () => {
                 </div>
             </div>
             <a
-                href="https://www.google.com/maps/place/Paraná+2730,+B1636+Olivos,+Provincia+de+Buenos+Aires"
+                href="https://maps.app.goo.gl/PyHpkMuqAXFKwYa88"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="mt-4 bg-violet-700 hover:bg-violet-900 text-white px-8 py-2 rounded-full shadow transition-all"

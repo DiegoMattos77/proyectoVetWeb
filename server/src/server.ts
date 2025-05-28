@@ -4,14 +4,16 @@ import authRouter from "./router/authRouter";
 import routerProductos from "./router/routerProductos";
 import routerPedidos from "./router/routerPedidos";
 import routerDetallePedidos from "./router/routerDetallePedidos";
-import db from './config/db';
+import { db } from './config/db';
 import cors from 'cors';
-
+import mercadoPagoRouter from './router/mercadoPagoRouter';
+import routerWebhookmp from './router/routerWebhookmp';
 
 const server = Express();
 
 const corsOptions = {
     origin: "http://localhost:5173",
+
     methods: 'GET,HEAD,PUT,POST',
     credentials: true,
     optionsSuccessStatus: 204,
@@ -20,15 +22,16 @@ const corsOptions = {
 server.use(cors(corsOptions));
 server.options('*', cors(corsOptions));
 
-server.use(Express.json());
-server.use(Express.urlencoded({ extended: true }));
-
+server.use(Express.json({ limit: '10mb' })); // o el tamaño que necesites
+server.use(Express.urlencoded({ extended: true, limit: '10mb' }));
+server.use('/api/mercadopago', mercadoPagoRouter);
+server.use('/api/webhookmp', routerWebhookmp);
 server.use('/api/clientes', routerCliente);
 server.use('/api/auth', authRouter);
 server.use('/api/productos', routerProductos);
 server.use('/api/pedidos', routerPedidos);
 server.use('/api/detalle', routerDetallePedidos);
-server.use('/api/productos/:id', routerProductos);
+
 
 
 
@@ -46,5 +49,6 @@ async function connectDB() {
 }
 
 connectDB()
+
 
 export default server;

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Form, ActionFunctionArgs, redirect, useLoaderData } from "react-router-dom";
+import { Form, ActionFunctionArgs, redirect, useLoaderData, useNavigate } from "react-router-dom";
 import { actualizar, obtenerClienteById } from '../services/ClienteService';
 import { Cliente } from '../types/index';
 import { AiOutlineEye, AiOutlineEyeInvisible } from "react-icons/ai";
@@ -45,15 +45,26 @@ export async function loader() {
 
 const EditarClientes = () => {
     const [passwordVisible, setPasswordVisible] = useState(false);
+    const navigate = useNavigate();
 
     const togglePasswordVisibility = () => {
         setPasswordVisible(!passwordVisible);
     };
 
+    
+
     const cliente = useLoaderData() as Cliente
 
     return (
         <div className="max-w-md mx-auto mt-10 p-6 bg-white rounded-lg shadow-md">
+            {/* Botón para volver al inicio */}
+            <button
+                type="button"
+                onClick={() => navigate("/")}
+                className="mb-4 bg-violet-700 hover:bg-violet-900 text-white px-5 py-2 rounded-full shadow transition-all"
+            >
+                Volver al inicio
+            </button>
             <h2 className="text-2xl font-bold mb-6 text-center text-violetPalette-btnColor ">Editar Perfil</h2>
             <Form method="POST">
                 <div className="mb-4">

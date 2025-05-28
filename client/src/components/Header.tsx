@@ -60,7 +60,7 @@ const Header: React.FC = () => {
         return () => document.removeEventListener("mousedown", handleClickOutside);
     }, []);
 
-    
+
 
 
     useEffect(() => {
@@ -105,7 +105,7 @@ const Header: React.FC = () => {
 
     return (
         <header className="fixed top-0 left-0 w-full bg-violetPalette-btnColor shadow-lg z-50 m">
-            
+
             <div className="mx-auto max-w-screen-xl px-4 sm:px-6 lg:px-8 h-18">
                 <div className="flex h-full items-center justify-between">
                     <div className="md:flex md:items-center md:justify-center md:gap-8 w-24 h-20 md:w-32 md:h-32 mt-2 md:mt-0">
@@ -192,17 +192,17 @@ const Header: React.FC = () => {
                                         <div className="flex-1">
                                             <div className="font-semibold">{producto.descripcion}</div>
                                             <div className="text-xs text-gray-500">
-                                                Categoría #{producto.id_categoria}
+                                                Stock {producto.stock}
                                             </div>
                                         </div>
                                         {/* Precio */}
                                         <div className="font-bold text-violet-700">${producto.precio_venta}</div>
                                     </li>
                                 ))}
-                        </ul>
+                            </ul>
                         )}
                     </form>
-                  
+
 
                     <div className="flex items-center gap-4">
 

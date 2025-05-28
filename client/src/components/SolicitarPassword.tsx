@@ -17,6 +17,12 @@ const SolicitarPassword = () => {
 
     return (
         <div className="flex items-center justify-center min-h-screen bg-gray-100">
+            <button
+                onClick={() => window.location.href = "/"}
+                className="mt-8 bg-gray-200 hover:bg-gray-300 text-violet-700 px-8 py-2 rounded-full shadow transition-all"
+            >
+                Volver al inicio
+            </button>
             <form onSubmit={handleSubmit} className="bg-white p-8 rounded shadow-md w-full max-w-md">
                 <h2 className="text-2xl font-bold mb-4">¿Olvidaste tu contraseña?</h2>
                 <input

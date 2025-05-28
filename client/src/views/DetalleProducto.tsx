@@ -25,6 +25,14 @@ const DetalleProducto = () => {
     if (loading) return <div className="text-center mt-10">Cargando...</div>;
     if (!producto) return <div className="text-center mt-10">Producto no encontrado</div>;
 
+    // Manejo robusto de la imagen
+    let imagenSrc = "/img/no-image.png";
+    if (typeof producto.imagen === "string" && producto.imagen.length > 0) {
+        imagenSrc = producto.imagen.startsWith("data:")
+            ? producto.imagen
+            : `data:image/jpeg;base64,${producto.imagen}`;
+    }
+
     return (
         <div className="w-full px-0 py-10">
             <button
@@ -35,9 +43,7 @@ const DetalleProducto = () => {
             </button>
             <div className="bg-white rounded shadow p-6 flex flex-col items-center w-full">
                 <img
-                    src={producto.imagen
-                        ? (producto.imagen.startsWith("data:") ? producto.imagen : `data:image/jpeg;base64,${producto.imagen}`)
-                        : "/img/no-image.png"}
+                    src={imagenSrc}
                     alt={producto.descripcion}
                     className="w-96 h-96 object-contain bg-white rounded mb-6 shadow-lg"
                 />
@@ -101,7 +107,7 @@ const DetalleProducto = () => {
 
                 {/* Botón de WhatsApp */}
                 <button
-                    onClick={() => window.open('https://wa.me/549XXXXXXXXXX', '_blank')}
+                    onClick={() => window.open('https://wa.me/543764379723', '_blank')}
                     className="mt-4 bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded-full shadow transition-all"
                 >
                     Consultar por WhatsApp

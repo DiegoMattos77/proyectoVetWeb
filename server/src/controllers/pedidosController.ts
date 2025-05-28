@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
 import pedidos from "../models/Pedidos.models";
-import db from '../config/db';
+import { db } from '../config/db';
 
 // Creo un nuevo pedido
 export const createPedido = async (req: Request, res: Response) => {

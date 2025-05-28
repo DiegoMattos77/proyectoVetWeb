@@ -10,7 +10,7 @@ const convertBlobToBase64 = (blob: Buffer): string => {
 
 export const getProducto = async (req: Request, res: Response) => {
     try {
-        const { busqueda, categoria, nombre_categoria } = req.query;
+        const { busqueda, categoria } = req.query;
 
         // Construir el filtro de búsqueda si hay parámetro
         const where: any = {};
@@ -27,7 +27,6 @@ export const getProducto = async (req: Request, res: Response) => {
 
         // Filtrar por categoría si viene en la query
         if (categoria) {
-            // Cambia 'categoria' por el nombre real del campo en tu modelo, por ejemplo 'id_categoria' o 'categoria'
             where.id_categoria = categoria;
         }
 
@@ -39,6 +38,7 @@ export const getProducto = async (req: Request, res: Response) => {
         const productosConImagenes = productos.map((producto) => {
             const productoJSON = producto.toJSON();
 
+            // Si la imagen viene como objeto, conviértela a base64
             if (producto.imagen?.imagen_bin) {
                 productoJSON.imagen = convertBlobToBase64(
                     producto.imagen.imagen_bin as unknown as Buffer
@@ -55,28 +55,25 @@ export const getProducto = async (req: Request, res: Response) => {
     }
 };
 
-// Obtener un producto por su ID (incluyendo la imagen en Base64)
 export const getProductoById = async (req: Request, res: Response) => {
     try {
-        const producto = await Productos.findByPk(req.params.id, {
-            include: [Imagenes], // Incluir la imagen relacionada
-        });
-
+        const { id } = req.params;
+        const producto = await Productos.findByPk(id, { include: [Imagenes] });
         if (!producto) {
-            return res.status(404).json({ mensaje: 'Producto no encontrado' });
+            return res.status(404).json({ error: "Producto no encontrado" });
         }
 
-        // Convertir imagen a Base64
-        const productoConImagen = {
-            ...producto.toJSON(),
-            imagen: producto.imagen ? convertBlobToBase64(producto.imagen.imagen_bin as unknown as Buffer) : null, // Convierte la imagen a Base64
-        };
+        const productoJSON = producto.toJSON();
+        if (producto.imagen?.imagen_bin) {
+            productoJSON.imagen = convertBlobToBase64(
+                producto.imagen.imagen_bin as unknown as Buffer
+            );
+        } else {
+            productoJSON.imagen = ""; // o undefined
+        }
 
-        return res.json(productoConImagen);
+        res.json(productoJSON);
     } catch (error) {
-        console.error(error);
-        return res.status(500).json({ mensaje: 'Error al obtener el producto' });
+        res.status(500).json({ error: "Error al obtener el producto por ID" });
     }
 };
-
-

@@ -1,16 +1,18 @@
-import React from "react";
+//import React, { useState } from "react";
 import { useLoaderData, useNavigate } from "react-router-dom";
 import { obtenerProductos } from "../services/ProductosService";
 import InicioProductDetalle from "../components/Section";
 import { Productos } from "../types/index";
 import Slider from "react-slick";
+//import  Range from "rc-slider";
+//import "rc-slider/assets/index.css";
 import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
 
 export async function loader() {
     try {
         const productos = await obtenerProductos();
-        return productos || [];  
+        return productos || [];
     } catch (error) {
         console.error("Error al cargar los productos:", error);
         return [];
@@ -21,7 +23,8 @@ const categorias = [
     { nombre: "Alimentos para Perros", imagen: "/img/descarga.jpg", id_categoria: 1 },
     { nombre: "Alimentos para Gatos", imagen: "/img/alimento_gatos.jpg", id_categoria: 5 },
     { nombre: "Alimentos para Peces", imagen: "/img/alimento_peces.jpg", id_categoria: 7 },
-    { nombre: "Alimentos para Aves", imagen: "/img/alimentos_aves.jpg", id_categoria: 4 }
+    { nombre: "Alimentos para Aves", imagen: "/img/alimentos_aves.jpg", id_categoria: 6 },
+    { nombre: "Pet Shop", imagen: "/img/petshop.png", id_categoria: 3 },
 ];
 
 // Flecha personalizada para el carrusel
@@ -45,8 +48,39 @@ const Inicio: React.FC = () => {
     const data = useLoaderData() as Productos[] || [];
     const navigate = useNavigate();
 
+    
+
     const handleCategoriaClick = (id_categoria: number) => {
         navigate(`/productos?categoria=${id_categoria}`);
+    };
+
+    const banners = [
+        { src: "/img/banner1.png", alt: "" },
+        { src: "/img/banner2.jpg", alt: "" },
+        { src: "/img/banner3.png", alt: "" },
+        { src: "/img/banner4.jpg", alt: "" },
+        { src: "/img/banner5.png", alt: "" },
+        { src: "/img/banner6.jpg", alt: "" },
+        { src: "/img/banner7.jpg", alt: "" },
+        { src: "/img/banner8.jpg", alt: "" },
+        { src: "/img/banner9.jpg", alt: "" },
+    ];
+
+    // Configuración del carrusel de banners
+    const bannerSettings = {
+        dots: true,
+        infinite: true,
+        speed: 600,
+        slidesToShow: 2,
+        slidesToScroll: 1,
+        autoplay: true,
+        autoplaySpeed: 2000,
+        arrows: false,
+        pauseOnHover: true,
+        responsive: [
+            { breakpoint: 1024, settings: { slidesToShow: 2 } },
+            { breakpoint: 600, settings: { slidesToShow: 1 } }
+        ]
     };
 
     // Configuración del carrusel con flechas personalizadas
@@ -67,7 +101,24 @@ const Inicio: React.FC = () => {
     };
 
     return (
-        <section className="container mx-auto px-6 py-8 mt-40 pt-5">
+        <section className="container mx-auto px-6 py-8 mt-8 pt-5">
+            {/* Carrusel de banners de marketing */}
+            <div className="mb-12">
+                <Slider {...bannerSettings}>
+                    {banners.map((banner) => (
+                        <div key={banner.src}>
+                            <img
+                                src={banner.src}
+                                alt={banner.alt}
+                                className="w-full h-48 md:h-64 object-contain bg-white rounded-xl shadow-lg"
+                            />
+                        </div>
+                    ))}
+                </Slider>
+            </div>
+
+           
+
             <h1 className="text-4xl font-bold text-center mb-4 text-violet-700">Nuestras Categorías</h1>
             <p className="text-center text-lg text-gray-600 mb-10">
                 Elegí una categoría para ver todos los productos disponibles

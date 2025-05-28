@@ -9,7 +9,8 @@ const categorias = [
     { nombre: "Alimentos para Perros", id_categoria: 1 },
     { nombre: "Alimentos para Gatos", id_categoria: 5 },
     { nombre: "Alimentos para Peces", id_categoria: 7 },
-    { nombre: "Alimentos para Aves", id_categoria: 4 }
+    { nombre: "Alimentos para Aves", id_categoria: 6 },
+    { nombre: "Pet Shop", id_categoria: 3 }
 ];
 
 const ProductosPage = () => {
