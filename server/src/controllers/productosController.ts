@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import { Op } from "sequelize";
+import { Op, Sequelize } from "sequelize";
 import Productos from "../models/Productos.models";
 import Imagenes from "../models/Imagenes.models";
 
@@ -14,15 +14,22 @@ export const getProducto = async (req: Request, res: Response) => {
 
         // Construir el filtro de búsqueda si hay parámetro
         const where: any = {};
+
+        // Filtrar productos cuyo stock sea mayor al stock de seguridad
+        where.stock = { [Op.gt]: Sequelize.col('stock_seguridad') };
+
         if (busqueda) {
             const palabras = (busqueda as string).split(" ");
-            where[Op.and] = palabras.map(palabra => ({
-                [Op.or]: [
-                    { descripcion: { [Op.like]: `%${palabra}%` } },
-                    // { marca: { [Op.like]: `%${palabra}%` } },
-                    // { categoria: { [Op.like]: `%${palabra}%` } }
-                ]
-            }));
+            where[Op.and] = [
+                ...(where[Op.and] || []),
+                ...palabras.map(palabra => ({
+                    [Op.or]: [
+                        { descripcion: { [Op.like]: `%${palabra}%` } },
+                        // { marca: { [Op.like]: `%${palabra}%` } },
+                        // { categoria: { [Op.like]: `%${palabra}%` } }
+                    ]
+                }))
+            ];
         }
 
         // Filtrar por categoría si viene en la query
@@ -63,13 +70,18 @@ export const getProductoById = async (req: Request, res: Response) => {
             return res.status(404).json({ error: "Producto no encontrado" });
         }
 
+        // Validar stock mayor a stock_seguridad
+        if (producto.stock <= producto.stock_seguridad) {
+            return res.status(404).json({ error: "Producto no disponible" });
+        }
+
         const productoJSON = producto.toJSON();
         if (producto.imagen?.imagen_bin) {
             productoJSON.imagen = convertBlobToBase64(
                 producto.imagen.imagen_bin as unknown as Buffer
             );
         } else {
-            productoJSON.imagen = ""; // o undefined
+            productoJSON.imagen = "";
         }
 
         res.json(productoJSON);

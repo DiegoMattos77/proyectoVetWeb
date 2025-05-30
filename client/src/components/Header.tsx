@@ -191,9 +191,9 @@ const Header: React.FC = () => {
                                         {/* Info del producto */}
                                         <div className="flex-1">
                                             <div className="font-semibold">{producto.descripcion}</div>
-                                            <div className="text-xs text-gray-500">
+                                            {/*<div className="text-xs text-gray-500">
                                                 Stock {producto.stock}
-                                            </div>
+                                            </div> */}
                                         </div>
                                         {/* Precio */}
                                         <div className="font-bold text-violet-700">${producto.precio_venta}</div>

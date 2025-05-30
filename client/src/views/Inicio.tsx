@@ -4,8 +4,6 @@ import { obtenerProductos } from "../services/ProductosService";
 import InicioProductDetalle from "../components/Section";
 import { Productos } from "../types/index";
 import Slider from "react-slick";
-//import  Range from "rc-slider";
-//import "rc-slider/assets/index.css";
 import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
 

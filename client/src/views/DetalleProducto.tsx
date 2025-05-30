@@ -49,7 +49,7 @@ const DetalleProducto = () => {
                 />
                 <h2 className="text-2xl font-bold mb-2">{producto.descripcion}</h2>
 
-                <div className="text-gray-600 mb-2">Stock: {producto.stock}</div>
+                
                 <div className="text-xl font-bold text-violet-700 mb-4">${producto.precio_venta}</div>
 
                 {/* Botón de compra */}
