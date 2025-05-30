@@ -31,31 +31,50 @@ const MiCarrito: React.FC<MiCarritoProps> = ({ onClose }) => {
     };
 
     const handlePagar = async () => {
+        if (carrito.length === 0) return;
         setLoading(true);
-        // Llama a tu backend para crear la preferencia
-        const response = await fetch("http://localhost:4000/api/mercadopago/crear-preferencia", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ items: carrito }),
-        });
-        const data = await response.json();
-        console.log("Respuesta del backend:", data);
-        setLoading(false);
 
-        if (data.id && window.MercadoPago) {
-            // Limpia el contenedor antes de renderizar el botón
-            const buttonContainer = document.querySelector('.mp-button');
-            if (buttonContainer) buttonContainer.innerHTML = "";
-            const mp = new window.MercadoPago("TEST-21df7f64-71f8-4f4e-8904-ccaff762b82f", { locale: "es-AR" });
-            mp.checkout({
-                preference: { id: data.id },
-                render: {
-                    container: ".mp-button",
-                    label: "Pagar con Mercado Pago",
-                },
+        // Mapea los productos al formato que espera Mercado Pago
+        const items = carrito.map(producto => ({
+            id: producto.id_producto,
+            title: producto.descripcion, // o el campo correcto de tu producto
+            quantity: producto.cantidad,
+            unit_price: producto.precio_venta,
+            description: producto.descripcion, // si tienes este campo
+            
+        }));
+
+        try {
+            const response = await fetch("http://localhost:4000/api/preferences", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ items }), // Usar el array mapeado 'items'
             });
-        } else {
-            alert("No se pudo iniciar el pago.");
+
+            if (!response.ok) throw new Error("Error al crear la preferencia de pago");
+
+            const data = await response.json();
+            setLoading(false);
+
+            if (data.id && window.MercadoPago) {
+                const buttonContainer = document.querySelector('.mp-button');
+                if (buttonContainer) buttonContainer.innerHTML = "";
+
+                const mp = new window.MercadoPago("TEST-21df7f64-71f8-4f4e-8904-ccaff762b82f", { locale: "es-AR" });
+                mp.checkout({
+                    preference: { id: data.id },
+                    render: {
+                        container: ".mp-button",
+                        label: "Pagar con Mercado Pago",
+                    },
+                });
+            } else {
+                alert("No se pudo iniciar el pago. Intenta nuevamente.");
+            }
+        } catch (error) {
+            setLoading(false);
+            alert("Ocurrió un error al procesar el pago.");
+            console.error(error);
         }
     };
 

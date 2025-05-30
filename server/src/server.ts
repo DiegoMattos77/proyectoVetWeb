@@ -6,8 +6,9 @@ import routerPedidos from "./router/routerPedidos";
 import routerDetallePedidos from "./router/routerDetallePedidos";
 import { db } from './config/db';
 import cors from 'cors';
-import mercadoPagoRouter from './router/mercadoPagoRouter';
-import routerWebhookmp from './router/routerWebhookmp';
+import webHookRouter from './router/webhook.routes';
+import paymentRouter from './router/payment.router';
+import preferencesRouter from './router/preferences.routes';
 
 const server = Express();
 
@@ -24,13 +25,14 @@ server.options('*', cors(corsOptions));
 
 server.use(Express.json({ limit: '10mb' })); // o el tamaño que necesites
 server.use(Express.urlencoded({ extended: true, limit: '10mb' }));
-server.use('/api/mercadopago', mercadoPagoRouter);
-server.use('/api/webhookmp', routerWebhookmp);
+server.use('/api/webhooks', webHookRouter);
 server.use('/api/clientes', routerCliente);
 server.use('/api/auth', authRouter);
 server.use('/api/productos', routerProductos);
 server.use('/api/pedidos', routerPedidos);
 server.use('/api/detalle', routerDetallePedidos);
+server.use('/api/payments', paymentRouter);
+server.use('/api', preferencesRouter);
 
 
 
