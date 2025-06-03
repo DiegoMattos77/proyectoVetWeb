@@ -1,8 +1,11 @@
 import { Request, Response } from 'express';
 import { mercadopago } from '../config/mercadopago';
 import dotenv from 'dotenv';
+import ClienteLogin from '../models/Clientes.models';
+import clientes from '../router/authRouter'
 dotenv.config();
 
+console.log(ClienteLogin);
 interface PreferenceRequest {
   items: Array<{
     id: string;
@@ -10,7 +13,6 @@ interface PreferenceRequest {
     quantity: number;
     unit_price: number;
     description?: string;
-    picture_url?: string;
   }>;
   payer?: {
     name?: string;
@@ -37,54 +39,69 @@ interface PreferenceRequest {
 }
 
 export const createPreference = async (req: Request, res: Response) => {
-  try {
-    const { items, payer, back_urls, auto_return, external_reference }: PreferenceRequest = req.body;
+  console.log('🔁 Entró al controlador createPreference');
+  console.log("PREFERENCIA BODY:", req.body);
 
-    // Validación básica
+  try {
+    const { items, external_reference, id_cliente } = req.body;
+
     if (!items || items.length === 0) {
       return res.status(400).json({ error: 'Items are required' });
     }
 
-    // Configuración base de la preferencia
+    // Buscar cliente
+    const cliente = await ClienteLogin.findByPk(id_cliente);
+    if (!cliente) {
+      console.error(`Cliente con ID ${id_cliente} no encontrado`);
+      return res.status(404).json({ error: "Cliente no encontrado" });
+    }
+    console.log(`Cliente encontrado: ${cliente.mail}`);
+
+    // Configuración de la preferencia con datos reales
     const preferenceConfig = {
       items: items.map(item => ({
-        id: item.id,
+        id: item.id.toString(),
         title: item.title,
         quantity: Number(item.quantity),
         unit_price: Number(item.unit_price),
-        currency_id: 'ARS', // O la moneda que uses
+        currency_id: 'ARS',
         description: item.description,
-
       })),
-      payer: payer ? { ...payer } : undefined,
+      payer: {
+        email: cliente.mail, // Tomado de la base de datos
+      },
       back_urls: {
-        success: `https://cba0-181-92-45-68.ngrok-free.app/payment/success`,
-        failure: `https://cba0-181-92-45-68.ngrok-free.app/payment/failure`,
-        pending: `https://cba0-181-92-45-68.ngrok-free.app/payment/pending`
+        success: `https://e961-98-97-134-39.ngrok-free.app/api/payment-redirect?status=success`,
+        failure: `https://e961-98-97-134-39.ngrok-free.app/api/payment-redirect?status=failure`,
+        pending: `https://e961-98-97-134-39.ngrok-free.app/api/payment-redirect?status=pending`,
       },
       auto_return: 'approved',
-      notification_url: `https://cba0-181-92-45-68.ngrok-free.app/api/webhooks/mercado-pago`,
-      external_reference: external_reference || undefined
+      notification_url: `https://e961-98-97-134-39.ngrok-free.app/api/webhooks/mercado-pago`,
+      external_reference: external_reference || undefined,
     };
 
-    console.log('preferenceConfig:', preferenceConfig);
 
+    //console.log('Configuración completa de la preferencia:', preferenceConfig);
 
     // Crear preferencia en Mercado Pago
+    //console.log('Enviando preferencia a Mercado Pago...');
     const preference = await mercadopago.preferences.create({ body: preferenceConfig });
+    //console.log('Preferencia creada:', preference);
 
-    // Responder con los datos necesarios para el frontend
     res.status(200).json({
       id: preference.id,
       init_point: preference.sandbox_init_point,
-      items: preference.items
+      items: preference.items,
     });
 
-  } catch (error) {
-    console.error('Error creating preference:', error);
+  } catch (error: any) {
+    console.error('Error creating preference:', error?.message || error);
+    if (error?.response?.data) {
+      console.error('MercadoPago error data:', error.response.data);
+    }
     res.status(500).json({
       error: 'Failed to create payment preference',
-      details: error instanceof Error ? error.message : 'Unknown error'
+      details: error instanceof Error ? error.message : 'Unknown error',
     });
   }
 };
@@ -106,11 +123,13 @@ export const getPreference = async (req: Request, res: Response) => {
       date_created: preference.date_created,
       expiration_date_to: preference.expiration_date_to
     });
-  } catch (error) {
-    console.error('Error getting preference:', error);
+  } catch (error: any) {
+    console.error('Error getting preference:', error?.message || error);
     res.status(500).json({
       error: 'Failed to get payment preference',
       details: error instanceof Error ? error.message : 'Unknown error'
     });
   }
+
+
 };

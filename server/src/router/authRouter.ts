@@ -8,5 +8,6 @@ const router = Router()
 router.post('/', loginClientes, inputErrors);
 router.post("/solicitar-password", solicitarRecuperacionPassword);
 router.post("/restablecer-password", restablecerPassword);
+router.get('/cliente', loginClientes);
 
 export default router

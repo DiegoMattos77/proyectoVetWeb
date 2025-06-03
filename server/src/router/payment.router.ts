@@ -1,6 +1,7 @@
 // src/routes/payment.router.ts
 import { Router } from 'express';
 import { createMercadoPagoPreference } from '../controllers/payment.controller';
+import { handlePaymentRedirect } from '../controllers/payment.controller';
 
 const router = Router();
 
@@ -18,4 +19,7 @@ router.post('/payments', async (req, res) => {
     }
 });
 
+
+
+router.get('/payment-redirect', handlePaymentRedirect);
 export default router;
