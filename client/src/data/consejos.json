@@ -1,0 +1,52 @@
+[
+    {
+        "titulo": "Vacunación responsable",
+        "contenido": "Vacuna a tu mascota según el calendario recomendado por tu veterinario. La inmunización previene enfermedades graves y protege a toda la comunidad animal. ¡No olvides los refuerzos anuales!",
+        "autor": "Dra. López"
+    },
+    {
+        "titulo": "Alimentación saludable",
+        "contenido": "Elige alimentos balanceados y consulta porciones con tu veterinario. Una dieta adecuada es la base para una vida larga y llena de vitalidad, adaptada a su edad, raza y nivel de actividad.",
+        "autor": "Dr. Pérez"
+    },
+    {
+        "titulo": "Ejercicio diario",
+        "contenido": "Saca a pasear a tu mascota todos los días para mantenerla activa y feliz. El ejercicio regular no solo mejora su condición física, sino también su salud mental, reduciendo el estrés y la ansiedad.",
+        "autor": "Lic. Gómez"
+    },
+    {
+        "titulo": "Higiene regular",
+        "contenido": "Baña a tu mascota regularmente y revisa su pelaje para detectar parásitos. La higiene incluye también el cuidado dental, de uñas y oídos, fundamentales para prevenir infecciones y molestias.",
+        "autor": "Dra. Fernández"
+    },
+    {
+        "titulo": "Chequeos veterinarios",
+        "contenido": "Lleva a tu mascota al veterinario al menos una vez al año para chequeos de salud. Las visitas preventivas son clave para la detección temprana de enfermedades y garantizar un bienestar continuo.",
+        "autor": "Dr. Martínez"
+    },
+    {
+        "titulo": "Importancia de la desparasitación",
+        "contenido": "Mantén a tu mascota protegida de parásitos internos y externos. La desparasitación periódica es vital no solo para su salud, sino también para la de tu familia, previniendo zoonosis.",
+        "autor": "Dra. Ramos"
+    },
+    {
+        "titulo": "Socialización temprana en cachorros",
+        "contenido": "Exponer a tu cachorro a diferentes personas, animales y entornos desde joven es crucial. Una buena socialización previene miedos y agresividad, formando un adulto equilibrado y feliz.",
+        "autor": "Dr. García"
+    },
+    {
+        "titulo": "Manejo del estrés y la ansiedad",
+        "contenido": "Identifica y aborda las causas de estrés en tu mascota. Cambios en la rutina, ruidos fuertes o la soledad pueden afectarlos. Consulta estrategias con tu veterinario para un ambiente tranquilo.",
+        "autor": "Dra. Silva"
+    },
+    {
+        "titulo": "Atención a cambios de comportamiento",
+        "contenido": "Cualquier cambio repentino en el comportamiento de tu mascota puede ser un indicio de salud. La apatía, irritabilidad o cambios en hábitos de eliminación merecen una consulta veterinaria inmediata.",
+        "autor": "Dr. Castro"
+    },
+    {
+        "titulo": "Cuidado específico para mascotas senior",
+        "contenido": "A medida que envejecen, las mascotas necesitan cuidados especiales. Chequeos más frecuentes, dietas adaptadas y atención a problemas articulares o cognitivos les aseguran una vejez digna.",
+        "autor": "Dra. Ortiz"
+    }
+]

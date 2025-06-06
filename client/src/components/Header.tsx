@@ -9,7 +9,7 @@ import MiCarrito from "../views/MiCarrito";
 import { obtenerProductos } from "../services/ProductosService";
 import { Productos } from "../types/index";
 import { FaWhatsapp, FaStore } from "react-icons/fa"; // Agrega este import al inicio
-
+import { FaBookOpen } from "react-icons/fa";
 
 const Header: React.FC = () => {
     const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -139,6 +139,19 @@ const Header: React.FC = () => {
                                 className="text-lg font-bold text-white underline hover:text-yellow-400 transition"
                             >
                                 Ver Locales
+                            </a>
+                        </div>
+                        {/*Bloque Blog de Consejos */}
+                        <div className="flex flex-col items-center bg-violet-800 px-6 py-2 rounded shadow min-w-[180px]">
+                            <div className="flex items-center gap-2 mb-1">
+                                <FaBookOpen className="text-cyan-300 text-xl" />
+                                <span className="font-semibold">Blog de Consejos</span>
+                            </div>
+                            <a
+                                href="/blog"
+                                className="text-lg font-bold text-white underline hover:text-yellow-400 transition"
+                            >
+                                Ver Consejos
                             </a>
                         </div>
                     </div>

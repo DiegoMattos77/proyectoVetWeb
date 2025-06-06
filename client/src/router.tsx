@@ -12,6 +12,7 @@ import DetalleProducto from "./views/DetalleProducto"; // <-- Importa tu compone
 import Sucursalvet from "./views/Sucursal";
 import TerminosCondiciones from "./views/TerminosCondiciones";
 import PreguntasFrecuentes from "./views/PreguntasFrecuentes";
+import Blog from "./views/Blog";
 
 
 export const router = createBrowserRouter([
@@ -82,6 +83,10 @@ export const router = createBrowserRouter([
         path: "/locales",
         element: <Sucursalvet />
       },
+      {
+        path: "/blog",
+        element: < Blog /> 
+      }
     
 
 ]);
