@@ -1,4 +1,4 @@
-//import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useLoaderData, useNavigate } from "react-router-dom";
 import { obtenerProductos } from "../services/ProductosService";
 import InicioProductDetalle from "../components/Section";
@@ -6,6 +6,7 @@ import { Productos } from "../types/index";
 import Slider from "react-slick";
 import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
+import { FaBell } from "react-icons/fa";
 
 export async function loader() {
     try {
@@ -45,8 +46,14 @@ const Arrow = ({ style, onClick, direction }: any) => (
 const Inicio: React.FC = () => {
     const data = useLoaderData() as Productos[] || [];
     const navigate = useNavigate();
+    const [mensajeIndex, setMensajeIndex] = useState(0);
 
-    
+    useEffect(() => {
+        const interval = setInterval(() => {
+            setMensajeIndex((prev) => (prev + 1) % recomendaciones.length);
+        }, 3000);
+        return () => clearInterval(interval);
+    }, []);
 
     const handleCategoriaClick = (id_categoria: number) => {
         navigate(`/productos?categoria=${id_categoria}`);
@@ -81,6 +88,16 @@ const Inicio: React.FC = () => {
         ]
     };
 
+    // Mensaje de notificación visual
+    const recomendaciones = [
+        "¡No olvides vacunar a tu mascota! Consultá el calendario en la veterinaria.",
+        "Recuerda desparasitar a tu mascota cada 3 meses.",
+        "¡Dale mucho amor y ejercicio a tu mascota todos los días!",
+        "Visita al veterinario al menos una vez al año para un chequeo general.",
+        "Mantén siempre agua fresca disponible para tu mascota."
+    ];
+
+
     // Configuración del carrusel con flechas personalizadas
     const settings = {
         dots: false,
@@ -89,6 +106,8 @@ const Inicio: React.FC = () => {
         slidesToShow: 4,
         slidesToScroll: 1,
         arrows: true,
+        autoplay: true, // <-- Activa el movimiento automático
+        autoplaySpeed: 2000, // <-- Cada 2 segundos
         nextArrow: <Arrow direction="right" />,
         prevArrow: <Arrow direction="left" />,
         responsive: [
@@ -115,8 +134,6 @@ const Inicio: React.FC = () => {
                 </Slider>
             </div>
 
-           
-
             <h1 className="text-4xl font-bold text-center mb-4 text-violet-700">Nuestras Categorías</h1>
             <p className="text-center text-lg text-gray-600 mb-10">
                 Elegí una categoría para ver todos los productos disponibles
@@ -126,16 +143,27 @@ const Inicio: React.FC = () => {
                     <button
                         key={cat.id_categoria}
                         onClick={() => handleCategoriaClick(cat.id_categoria)}
-                        className="flex flex-col items-center bg-white rounded shadow hover:shadow-lg transition p-6 w-56"
+                        className="flex flex-col items-center bg-white rounded shadow transition-all duration-300 hover:scale-105 hover:shadow-2xl p-6 w-56"
                     >
                         <img src={cat.imagen} alt={cat.nombre} className="w-36 h-36 object-cover rounded-full mb-4" />
                         <span className="font-semibold">{cat.nombre}</span>
                     </button>
                 ))}
+                {/* Notificación visual de vacunación */}
+                <div className="flex justify-center mb-10">
+                    <div className="bg-yellow-100 border border-yellow-400 text-yellow-800 px-6 py-3 rounded shadow-lg flex items-center gap-3 animate-bounce">
+                        <FaBell className="text-yellow-500 text-xl" />
+                        <span className="font-semibold">
+                            {recomendaciones[mensajeIndex]}
+                        </span>
+                    </div>
+                </div>
+
+
             </div>
             <h1 className="text-4xl font-bold text-center mb-4 text-violet-700">Más Productos</h1>
             <p className="text-center text-lg text-gray-600 mb-10">
-                Accede a tu compra y te lo enviamos a casa
+                Accede a tu compra de forma rápida y sencilla.
             </p>
             <Slider {...settings}>
                 {data.slice(0, 20).map((producto) => (

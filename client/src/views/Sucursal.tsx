@@ -13,8 +13,8 @@ const Sucursalvet = () => {
                 alt="Sucursal Olivos"
                 className="w-full max-w-md rounded shadow mb-6 object-cover"
             />
-            <div className="w-full mb-4">
-                <h2 className="text-xl font-semibold mb-2">Dirección y Contactos</h2>
+            <div className="w-full">
+                <h2 className="text-xl font-semibold text-violet-700 mb-2">Dirección y Contactos</h2>
                 <div className="flex items-center gap-2 mb-1">
                     <FaMapMarkerAlt className="text-violet-700" />
                     <span>Paraná 2730, B1636 Leandro N. Alem, Provincia de Misiones</span>
