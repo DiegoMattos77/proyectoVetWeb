@@ -1,8 +1,9 @@
-import { useState } from "react";
-import { Form, ActionFunctionArgs, redirect } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { Form, ActionFunctionArgs, useActionData, useNavigate } from "react-router-dom";
 import { registro } from '../services/ClienteService';
 import { Cliente } from '../types/index';
 import { AiOutlineEye, AiOutlineEyeInvisible } from "react-icons/ai";
+import { toast } from "react-toastify";
 
 type RegistroFormProps = {
     registroCliente?: Cliente;
@@ -10,27 +11,53 @@ type RegistroFormProps = {
 
 export async function action({ request }: ActionFunctionArgs) {
     const data = Object.fromEntries(await request.formData());
-    console.log("Datos enviados:", data);
+    // Validación de campos vacíos
     if (Object.values(data).some(value => value === "")) {
-        return "Todos los campos son obligatorios";
+        return { error: "Todos los campos son obligatorios" };
+    }
+    // Validación de contraseñas
+    if (data.password !== data.confirmPassword) {
+        return { error: "Las contraseñas no coinciden" };
     }
 
     try {
         await registro(data);
-        return redirect('/');
+        return { success: "¡Registro exitoso!" };
     } catch (error: unknown) {
         if (error instanceof Error) {
-            return error.message;
+            return { error: error.message };
         }
-        return "Error inesperado";
+        return { error: "Error inesperado" };
     }
 }
 
 const RegistroClientes = ({ registroCliente }: RegistroFormProps) => {
     const [passwordVisible, setPasswordVisible] = useState(false);
+    const [confirmPasswordVisible, setConfirmPasswordVisible] = useState(false);
+    const actionData = useActionData() as { error?: string; success?: string };
+    const navigate = useNavigate();
+
+    // Mostrar toast y redirigir si corresponde
+    useEffect(() => {
+        console.log(actionData);
+        if (actionData?.error) {
+            toast.error(actionData.error, { autoClose: 2000 });
+        }
+
+        if (actionData?.success) {
+            toast.success(actionData.success, { autoClose: 2000 });
+            const timer = setTimeout(() => {
+                navigate("/login"); // Redirige al login después de 2 segundos
+            }, 2000);
+            return () => clearTimeout(timer);
+        }
+    }, [actionData, navigate]);
 
     const togglePasswordVisibility = () => {
         setPasswordVisible(!passwordVisible);
+    };
+    const toggleConfirmPasswordVisibility = () => {
+        setConfirmPasswordVisible(!confirmPasswordVisible);
     };
 
     return (
@@ -48,7 +75,6 @@ const RegistroClientes = ({ registroCliente }: RegistroFormProps) => {
                         className="w-full px-4 py-2 mt-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-violet-500"
                     />
                 </div>
-
                 <div className="mb-4">
                     <label className="block text-gray-700">Apellido</label>
                     <input
@@ -60,7 +86,6 @@ const RegistroClientes = ({ registroCliente }: RegistroFormProps) => {
                         className="w-full px-4 py-2 mt-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-violet-500"
                     />
                 </div>
-
                 <div className="mb-4">
                     <label className="block text-gray-700">Domicilio</label>
                     <input
@@ -72,7 +97,6 @@ const RegistroClientes = ({ registroCliente }: RegistroFormProps) => {
                         className="w-full px-4 py-2 mt-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-violet-500"
                     />
                 </div>
-
                 <div className="mb-4">
                     <label className="block text-gray-700">Teléfono</label>
                     <input
@@ -84,7 +108,6 @@ const RegistroClientes = ({ registroCliente }: RegistroFormProps) => {
                         className="w-full px-4 py-2 mt-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-violet-500"
                     />
                 </div>
-
                 <div className="mb-4">
                     <label className="block text-gray-700">Email</label>
                     <input
@@ -96,7 +119,6 @@ const RegistroClientes = ({ registroCliente }: RegistroFormProps) => {
                         className="w-full px-4 py-2 mt-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-violet-500"
                     />
                 </div>
-
                 <div className="mb-4">
                     <label className="block text-gray-700">DNI</label>
                     <input
@@ -108,7 +130,6 @@ const RegistroClientes = ({ registroCliente }: RegistroFormProps) => {
                         className="w-full px-4 py-2 mt-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-violet-500"
                     />
                 </div>
-
                 <div className="mb-4">
                     <label className="block text-gray-700">CUIT/CUIL</label>
                     <input
@@ -120,7 +141,6 @@ const RegistroClientes = ({ registroCliente }: RegistroFormProps) => {
                         className="w-full px-4 py-2 mt-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-violet-500"
                     />
                 </div>
-
                 <div className="mb-4 relative">
                     <label className="block text-gray-700">Contraseña</label>
                     <div className="relative">
@@ -140,7 +160,25 @@ const RegistroClientes = ({ registroCliente }: RegistroFormProps) => {
                         </button>
                     </div>
                 </div>
-
+                <div className="mb-4 relative">
+                    <label className="block text-gray-700">Confirmar Contraseña</label>
+                    <div className="relative">
+                        <input
+                            name="confirmPassword"
+                            id="confirmPassword"
+                            type={confirmPasswordVisible ? "text" : "password"}
+                            placeholder="Confirmar Contraseña"
+                            className="w-full px-4 py-2 pr-10 mt-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-violet-500"
+                        />
+                        <button
+                            type="button"
+                            onClick={toggleConfirmPasswordVisibility}
+                            className="absolute inset-y-0 right-3 flex items-center text-gray-600"
+                        >
+                            {confirmPasswordVisible ? <AiOutlineEyeInvisible size={20} /> : <AiOutlineEye size={20} />}
+                        </button>
+                    </div>
+                </div>
                 <button
                     type="submit"
                     className="w-full px-8 py-3 font-semibold rounded-md bg-violetPalette-btnHover text-white hover:bg-violetPalette-btnColor transition duration-300"

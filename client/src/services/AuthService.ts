@@ -27,23 +27,30 @@ export async function login(data: LoginData): Promise<{ nombre: string, id_clien
             password: result.output.password,
         });
 
-        const { authenticated, data: { nombre, id_cliente } } = response.data;
+        // Si el backend responde con authenticated y data
+        const { authenticated, data: { nombre, id_cliente } = {} } = response.data;
 
         if (!authenticated) {
             throw new Error("Correo o contraseña incorrectos");
         }
 
-        console.log("Login exitoso:", response.data);
         localStorage.setItem("userName", nombre);
-        localStorage.setItem("id_cliente", id_cliente)
+        localStorage.setItem("id_cliente", id_cliente);
 
         return { nombre, id_cliente };
-    } catch (error: unknown) {
+    } catch (error: any) {
         console.error("Error en el login:", error);
         if (axios.isAxiosError(error) && error.response) {
-            throw new Error(error.response.data.message || "Error de autenticación");
+            // Si el backend envía un mensaje personalizado, úsalo
+            const backendMsg = error.response.data?.message || error.response.data?.error;
+            if (backendMsg) {
+                throw new Error(backendMsg);
+            }
+            // Si no, usa un mensaje genérico
+            throw new Error("Correo o contraseña incorrectos");
         }
-        throw new Error("Error en el login");
+        // Otros errores
+        throw new Error(error.message || "Error en el login");
     }
 }
 

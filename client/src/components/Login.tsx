@@ -23,9 +23,10 @@ export async function action({ request }: ActionFunctionArgs) {
 
     } catch (error: unknown) {
         if (error instanceof Error) {
-            toast.error("Verifique los datos!");
+            toast.error(error.message);
             return error.message;
         }
+        toast.error("Error inesperado");
         return "Error inesperado";
     }
 }
@@ -72,7 +73,7 @@ const LoginForm = ({ login }: LoginFormProps) => {
 
                     <p className="px-6 text-sm text-center text-gray-600">
                         <Link to="/solicitar-password" className="hover:underline text-violetPalette-btnColor">
-                            ¿Ha olvidado su contraseña?                      
+                            ¿Ha olvidado su contraseña?
                         </Link>
                     </p>
 
