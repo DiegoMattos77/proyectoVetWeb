@@ -3,7 +3,7 @@ import { useCart } from "../components/CotextoCarrito";
 import PerfilCarrito from "../components/PerfilCarrito";
 import { formatCurrency } from "../helpers";
 import { getUserName } from "../services/AuthService";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 
 declare global {
     interface Window {
@@ -19,11 +19,19 @@ const MiCarrito: React.FC<MiCarritoProps> = ({ onClose }) => {
     const { carrito } = useCart();
     const [nombre, setNombre] = useState<string | null>(null);
     const [loading, setLoading] = useState(false);
-    //const mpButtonRef = useRef<HTMLDivElement>(null);
+    const [retiro, setRetiro] = useState("central"); // "central" o "sucursal"
+    const mpButtonRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
         const nombreUsuario = getUserName();
         setNombre(nombreUsuario);
+    }, []);
+
+    // Limpia el botón de Mercado Pago al desmontar o cerrar
+    useEffect(() => {
+        return () => {
+            if (mpButtonRef.current) mpButtonRef.current.innerHTML = "";
+        };
     }, []);
 
     const calcularTotal = () => {
@@ -34,21 +42,19 @@ const MiCarrito: React.FC<MiCarritoProps> = ({ onClose }) => {
         if (carrito.length === 0) return;
         setLoading(true);
 
-        // Mapea los productos al formato que espera Mercado Pago
         const items = carrito.map(producto => ({
             id: producto.id_producto,
-            title: producto.descripcion, // o el campo correcto de tu producto
+            title: producto.descripcion,
             quantity: producto.cantidad,
             unit_price: producto.precio_venta,
-            description: producto.descripcion, // si tienes este campo
-            
+            description: producto.descripcion,
         }));
 
         try {
             const response = await fetch("http://localhost:4000/api/preferences", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ items }), // Usar el array mapeado 'items'
+                body: JSON.stringify({ items, retiro }),
             });
 
             if (!response.ok) throw new Error("Error al crear la preferencia de pago");
@@ -57,14 +63,12 @@ const MiCarrito: React.FC<MiCarritoProps> = ({ onClose }) => {
             setLoading(false);
 
             if (data.id && window.MercadoPago) {
-                const buttonContainer = document.querySelector('.mp-button');
-                if (buttonContainer) buttonContainer.innerHTML = "";
-
+                if (mpButtonRef.current) mpButtonRef.current.innerHTML = "";
                 const mp = new window.MercadoPago("TEST-21df7f64-71f8-4f4e-8904-ccaff762b82f", { locale: "es-AR" });
                 mp.checkout({
                     preference: { id: data.id },
                     render: {
-                        container: ".mp-button",
+                        container: mpButtonRef.current,
                         label: "Pagar con Mercado Pago",
                     },
                 });
@@ -78,6 +82,9 @@ const MiCarrito: React.FC<MiCarritoProps> = ({ onClose }) => {
         }
     };
 
+    // Log para verificar el valor de retiro
+    console.log("Valor de retiro:", retiro);
+
     return (
         <div
             className="relative max-w-lg mx-auto mt-20 w-full border border-gray-400 rounded-lg bg-white shadow-lg px-6 py-10"
@@ -86,7 +93,10 @@ const MiCarrito: React.FC<MiCarritoProps> = ({ onClose }) => {
             tabIndex={-1}
         >
             <button
-                onClick={onClose}
+                onClick={() => {
+                    if (mpButtonRef.current) mpButtonRef.current.innerHTML = "";
+                    onClose();
+                }}
                 className="absolute top-4 right-4 text-gray-600 transition duration-300 hover:text-red-600"
                 title="Cerrar"
             >
@@ -111,7 +121,39 @@ const MiCarrito: React.FC<MiCarritoProps> = ({ onClose }) => {
                 </>
             ) : (
                 <>
-                    <p className="text-center"><span className="text-xl text-blue-700">Hola {nombre}!</span> Estos son tus productos seleccionados</p>
+                    <p className="text-center">
+                        <span className="text-xl text-blue-700">Hola {nombre}!</span> Estos son tus productos seleccionados
+                    </p>
+
+                    {/* Selección de retiro SOLO si hay productos */}
+                    <div className="mb-4">
+                        <label className="block font-semibold mb-2 text-gray-700">¿Dónde querés retirar tu compra?</label>
+                        <div className="flex gap-4">
+                            <label className="flex items-center">
+                                <input
+                                    type="radio"
+                                    name="retiro"
+                                    value="central"
+                                    checked={retiro === "central"}
+                                    onChange={e => setRetiro(e.target.value)}
+                                    className="mr-2"
+                                />
+                                Casa Central
+                            </label>
+                            <label className="flex items-center">
+                                <input
+                                    type="radio"
+                                    name="retiro"
+                                    value="sucursal"
+                                    checked={retiro === "sucursal"}
+                                    onChange={e => setRetiro(e.target.value)}
+                                    className="mr-2"
+                                />
+                                Sucursal L.N Alem
+                            </label>
+                        </div>
+                    </div>
+
                     {carrito.map((producto) => (
                         <div key={producto.id_producto}>
                             <PerfilCarrito producto={producto} />
@@ -120,6 +162,15 @@ const MiCarrito: React.FC<MiCarritoProps> = ({ onClose }) => {
                     <div className="mt-6 flex justify-between items-center border-t pt-4">
                         <span className="text-lg font-semibold">Total:</span>
                         <span className="text-lg font-semibold">{formatCurrency(calcularTotal())}</span>
+                    </div>
+                    <div className="mt-4 text-center">
+                        <span className="inline-block bg-blue-100 border border-blue-300 text-blue-800 px-4 py-2 rounded-lg text-base font-semibold shadow-sm">
+                            Retiro seleccionado: {retiro === "central"
+                                ? "Casa Central"
+                                : retiro === "sucursal"
+                                    ? "Sucursal L.N Alem"
+                                    : "No seleccionado"}
+                        </span>
                     </div>
                 </>
             )}
@@ -134,10 +185,13 @@ const MiCarrito: React.FC<MiCarritoProps> = ({ onClose }) => {
                     {loading ? "Cargando..." : "Pagar con Mercado Pago"}
                 </button>
                 {/* Aquí se renderiza el botón de Mercado Pago */}
-                <div className="mt-2 mp-button"></div>
+                <div ref={mpButtonRef} className="mt-2 mp-button"></div>
                 <Link
                     to={"/"}
-                    onClick={onClose}
+                    onClick={() => {
+                        if (mpButtonRef.current) mpButtonRef.current.innerHTML = "";
+                        onClose();
+                    }}
                     className="inline-block text-sm text-gray-500 underline transition hover:text-gray-600"
                 >
                     Continuar comprando

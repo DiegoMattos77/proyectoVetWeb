@@ -65,6 +65,7 @@ export const router = createBrowserRouter([
         action: actionEditarCliente,
         loader: loaderEditarCliente
     },
+    
     {
         path: '/MiCarrito',
         element: <MiCarrito onClose={function (): void {
