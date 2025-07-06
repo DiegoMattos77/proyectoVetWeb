@@ -5,6 +5,7 @@ import { formatCurrency } from "../helpers";
 import { getUserName } from "../services/AuthService";
 import { useState, useEffect, useRef } from "react";
 
+
 declare global {
     interface Window {
         MercadoPago: any;
@@ -20,6 +21,7 @@ const MiCarrito: React.FC<MiCarritoProps> = ({ onClose }) => {
     const [nombre, setNombre] = useState<string | null>(null);
     const [loading, setLoading] = useState(false);
     const [retiro, setRetiro] = useState("central"); // "central" o "sucursal"
+    const [enviando, setEnviando] = useState(false);
     const mpButtonRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
@@ -82,8 +84,72 @@ const MiCarrito: React.FC<MiCarritoProps> = ({ onClose }) => {
         }
     };
 
-    // Log para verificar el valor de retiro
-    console.log("Valor de retiro:", retiro);
+    // Descargar remito como PDF
+    const handleDescargarRemito = async () => {
+        const token = localStorage.getItem("token");
+        if (!token) {
+            alert("Debes iniciar sesión para descargar el remito.");
+            return;
+        }
+        try {
+            const response = await fetch("http://localhost:4000/api/descargar-remito", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": `Bearer ${token}`
+                },
+                body: JSON.stringify({
+                    nombre,
+                    retiro,
+                    carrito,
+                    total: calcularTotal()
+                }),
+            });
+            if (!response.ok) throw new Error("No se pudo descargar el remito.");
+            const blob = await response.blob();
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement("a");
+            a.href = url;
+            a.download = "remito.pdf";
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+            window.URL.revokeObjectURL(url);
+        } catch (error) {
+            alert("Error al descargar el remito.");
+        }
+    };
+
+    // Enviar remito por email (requiere endpoint en backend)
+    const handleEnviarRemito = async () => {
+        setEnviando(true);
+        try {
+            const token = localStorage.getItem("token");
+            if (!token) {
+                alert("Debes iniciar sesión para enviar el remito.");
+                setEnviando(false);
+                return;
+            }
+            const response = await fetch("http://localhost:4000/api/enviar-remito", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": `Bearer ${token}`
+                },
+                body: JSON.stringify({
+                    nombre,
+                    retiro,
+                    carrito,
+                    total: calcularTotal()
+                }),
+            });
+            if (!response.ok) throw new Error("No se pudo enviar el remito.");
+            alert("Remito enviado por email correctamente.");
+        } catch (error) {
+            alert("Error al enviar el remito por email.");
+        }
+        setEnviando(false);
+    };
 
     return (
         <div
@@ -138,7 +204,7 @@ const MiCarrito: React.FC<MiCarritoProps> = ({ onClose }) => {
                                     onChange={e => setRetiro(e.target.value)}
                                     className="mr-2"
                                 />
-                                Casa Central
+                                Sucursal Posadas
                             </label>
                             <label className="flex items-center">
                                 <input
@@ -166,7 +232,7 @@ const MiCarrito: React.FC<MiCarritoProps> = ({ onClose }) => {
                     <div className="mt-4 text-center">
                         <span className="inline-block bg-blue-100 border border-blue-300 text-blue-800 px-4 py-2 rounded-lg text-base font-semibold shadow-sm">
                             Retiro seleccionado: {retiro === "central"
-                                ? "Casa Central"
+                                ? "Sucursal Posadas"
                                 : retiro === "sucursal"
                                     ? "Sucursal L.N Alem"
                                     : "No seleccionado"}
@@ -183,6 +249,20 @@ const MiCarrito: React.FC<MiCarritoProps> = ({ onClose }) => {
                         }`}
                 >
                     {loading ? "Cargando..." : "Pagar con Mercado Pago"}
+                </button>
+                <button
+                    disabled={carrito.length === 0}
+                    onClick={handleDescargarRemito}
+                    className="w-full rounded px-4 py-3 text-sm font-medium text-blue-700 border border-blue-700 bg-white hover:bg-blue-50 transition"
+                >
+                    Descargar remito (PDF)
+                </button>
+                <button
+                    disabled={carrito.length === 0 || enviando}
+                    onClick={handleEnviarRemito}
+                    className="w-full rounded px-4 py-3 text-sm font-medium text-green-700 border border-green-700 bg-white hover:bg-green-50 transition"
+                >
+                    {enviando ? "Enviando..." : "Enviar remito por email"}
                 </button>
                 {/* Aquí se renderiza el botón de Mercado Pago */}
                 <div ref={mpButtonRef} className="mt-2 mp-button"></div>

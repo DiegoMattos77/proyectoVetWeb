@@ -27,11 +27,16 @@ export async function login(data: LoginData): Promise<{ nombre: string, id_clien
             password: result.output.password,
         });
 
-        // Si el backend responde con authenticated y data
-        const { authenticated, data: { nombre, id_cliente } = {} } = response.data;
+        // Espera que el backend devuelva { authenticated, data: { nombre, id_cliente }, token }
+        const { authenticated, data: { nombre, id_cliente } = {}, token } = response.data;
 
         if (!authenticated) {
             throw new Error("Correo o contraseña incorrectos");
+        }
+
+        // Guarda el token en localStorage
+        if (token) {
+            localStorage.setItem("token", token);
         }
 
         localStorage.setItem("userName", nombre);
@@ -74,5 +79,6 @@ export function getUserId(): string | null {
 
 export function logout() {
     localStorage.removeItem("userName");
-    localStorage.removeItem("id_cliente"); // Elimina el nombre del usuario al cerrar sesión
+    localStorage.removeItem("id_cliente");
+    localStorage.removeItem("token"); // Elimina el token al cerrar sesión
 }

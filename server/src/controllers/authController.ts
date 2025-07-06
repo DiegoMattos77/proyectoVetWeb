@@ -8,6 +8,8 @@ import bcrypt from "bcryptjs"; // Si quieres encriptar la contraseña (opcional,
 
 
 
+const SECRET = process.env.JWT_SECRET || "clave_secreta";
+
 export async function loginClientes(req: Request, res: Response) {
     console.log("Login endpoint hit", req.body);
     try {
@@ -29,6 +31,13 @@ export async function loginClientes(req: Request, res: Response) {
             return res.status(401).json({ message: "Correo o contraseña incorrectos" });
         }
 
+        // GENERA EL TOKEN JWT AQUÍ
+        const token = jwt.sign(
+            { mail: cliente.mail, id_cliente: cliente.id_cliente, nombre: cliente.nombre },
+            SECRET,
+            { expiresIn: "1h" }
+        );
+
         return res.json({
             data: {
                 mail: cliente.mail,
@@ -36,7 +45,8 @@ export async function loginClientes(req: Request, res: Response) {
                 id_cliente: cliente.id_cliente
             },
             message: "Login exitoso",
-            authenticated: true
+            authenticated: true,
+            token // <-- AGREGA EL TOKEN AQUÍ
         });
 
     } catch (error) {
@@ -49,7 +59,7 @@ export async function loginClientes(req: Request, res: Response) {
 
 // endpoint de recuperación en el controlador
 
-const SECRET = process.env.JWT_SECRET || "clave_secreta";
+//const SECRET = process.env.JWT_SECRET || "clave_secreta";
 
 export async function solicitarRecuperacionPassword(req: Request, res: Response) {
     const { mail } = req.body;
