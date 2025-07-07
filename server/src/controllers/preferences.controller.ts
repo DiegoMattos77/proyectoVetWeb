@@ -71,12 +71,12 @@ export const createPreference = async (req: Request, res: Response) => {
         email: cliente.mail, // Tomado de la base de datos
       },
       back_urls: {
-        success: `https://e961-98-97-134-39.ngrok-free.app/api/payment-redirect?status=success`,
-        failure: `https://e961-98-97-134-39.ngrok-free.app/api/payment-redirect?status=failure`,
-        pending: `https://e961-98-97-134-39.ngrok-free.app/api/payment-redirect?status=pending`,
+        success: `https://fb73eea22a4a.ngrok-free.app/api/payment-redirect?status=success`,
+        failure: `https://fb73eea22a4a.ngrok-free.app/api/payment-redirect?status=failure`,
+        pending: `https://fb73eea22a4a.ngrok-free.app/api/payment-redirect?status=pending`,
       },
       auto_return: 'approved',
-      notification_url: `https://e961-98-97-134-39.ngrok-free.app/api/webhooks/mercado-pago`,
+      notification_url: `https://fb73eea22a4a.ngrok-free.app/api/webhooks/mercado-pago`,
       external_reference: external_reference || undefined,
     };
 

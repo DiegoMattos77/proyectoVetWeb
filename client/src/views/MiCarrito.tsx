@@ -2,7 +2,7 @@ import { Link } from "react-router-dom";
 import { useCart } from "../components/CotextoCarrito";
 import PerfilCarrito from "../components/PerfilCarrito";
 import { formatCurrency } from "../helpers";
-import { getUserName } from "../services/AuthService";
+import { getUserName, getUserId } from "../services/AuthService";
 import { useState, useEffect, useRef } from "react";
 
 
@@ -19,6 +19,7 @@ interface MiCarritoProps {
 const MiCarrito: React.FC<MiCarritoProps> = ({ onClose }) => {
     const { carrito } = useCart();
     const [nombre, setNombre] = useState<string | null>(null);
+    const [userId, setUserId] = useState<string | null>(null);
     const [loading, setLoading] = useState(false);
     const [retiro, setRetiro] = useState("central"); // "central" o "sucursal"
     const [enviando, setEnviando] = useState(false);
@@ -27,6 +28,7 @@ const MiCarrito: React.FC<MiCarritoProps> = ({ onClose }) => {
     useEffect(() => {
         const nombreUsuario = getUserName();
         setNombre(nombreUsuario);
+        setUserId(getUserId());
     }, []);
 
     // Limpia el botón de Mercado Pago al desmontar o cerrar
@@ -56,7 +58,7 @@ const MiCarrito: React.FC<MiCarritoProps> = ({ onClose }) => {
             const response = await fetch("http://localhost:4000/api/preferences", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ items, retiro }),
+                body: JSON.stringify({ items, retiro, id_cliente: userId }),
             });
 
             if (!response.ok) throw new Error("Error al crear la preferencia de pago");
@@ -66,11 +68,11 @@ const MiCarrito: React.FC<MiCarritoProps> = ({ onClose }) => {
 
             if (data.id && window.MercadoPago) {
                 if (mpButtonRef.current) mpButtonRef.current.innerHTML = "";
-                const mp = new window.MercadoPago("TEST-21df7f64-71f8-4f4e-8904-ccaff762b82f", { locale: "es-AR" });
+                const mp = new window.MercadoPago("APP_USR-fa28cccc-92b4-4b93-87c4-e82835b0aee8", { locale: "es-AR" });
                 mp.checkout({
                     preference: { id: data.id },
                     render: {
-                        container: mpButtonRef.current,
+                        container: ".mp-button", // ✅ Esto es un selector CSS válido
                         label: "Pagar con Mercado Pago",
                     },
                 });
