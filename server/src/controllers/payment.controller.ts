@@ -38,17 +38,20 @@ export const createMercadoPagoPreference = async (amount: number, method: string
 export const handlePaymentRedirect = (req: Request, res: Response) => {
     const { status } = req.query; // Leer el parámetro "status" de la URL
 
+    // Agregar header para evitar la página de advertencia de ngrok
+    res.set('ngrok-skip-browser-warning', 'true');
+
     if (status === 'success') {
         // Redirigir al frontend con el estado de éxito
-        return res.redirect('http://localhost:5173/productos?message=success');
+        return res.redirect('http://localhost:5173/?payment=success&clearCart=true');
     } else if (status === 'failure') {
         // Redirigir al frontend con el estado de fallo
-        return res.redirect('http://localhost:5173?message=failure');
+        return res.redirect('http://localhost:5173/?payment=failure');
     } else if (status === 'pending') {
         // Redirigir al frontend con el estado pendiente
-        return res.redirect('http://localhost:5173?message=pending');
+        return res.redirect('http://localhost:5173/?payment=pending');
     } else {
         // Redirigir al frontend con un mensaje de error desconocido
-        return res.redirect('http://localhost:5173?message=unknown');
+        return res.redirect('http://localhost:5173/?payment=unknown');
     }
 };

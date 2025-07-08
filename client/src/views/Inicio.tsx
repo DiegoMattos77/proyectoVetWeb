@@ -7,6 +7,10 @@ import Slider from "react-slick";
 import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
 import { FaBell } from "react-icons/fa";
+import { useCart } from "../components/CotextoCarrito";
+import Swal from "sweetalert2";
+import { getUserId } from "../services/AuthService";
+import { verificarCarritoParaLimpiar } from "../services/CarritoService";
 
 export async function loader() {
     try {
@@ -47,12 +51,166 @@ const Inicio: React.FC = () => {
     const data = useLoaderData() as Productos[] || [];
     const navigate = useNavigate();
     const [mensajeIndex, setMensajeIndex] = useState(0);
+    const { limpiarCarrito } = useCart();
 
+    // Función para forzar la limpieza del carrito
+    const forzarLimpiezaCarrito = () => {
+        console.log('🧹 Ejecutando forzar limpieza del carrito...');
+
+        // 1. Limpiar usando el contexto
+        try {
+            limpiarCarrito();
+            console.log('✅ Función limpiarCarrito() ejecutada');
+        } catch (error) {
+            console.error('❌ Error al ejecutar limpiarCarrito():', error);
+        }
+
+        // 2. Forzar limpieza en localStorage para todos los usuarios posibles
+        const currentUser = localStorage.getItem('userName');
+        if (currentUser) {
+            console.log(`👤 Limpiando carrito para usuario: ${currentUser}`);
+            const carritoKey = `carrito_${currentUser}`;
+            localStorage.removeItem(carritoKey);
+            localStorage.setItem(carritoKey, JSON.stringify([]));
+        }
+
+        // 3. Limpiar cualquier carrito que pueda estar en localStorage
+        Object.keys(localStorage).forEach(key => {
+            if (key.startsWith('carrito_')) {
+                console.log(`🗑️ Removiendo completamente: ${key}`);
+                localStorage.removeItem(key);
+                console.log(`✅ Carrito removido: ${key}`);
+            }
+        });
+
+        // 4. Trigger manual del evento para asegurar que se ejecute
+        window.dispatchEvent(new Event('cart-cleared'));
+        console.log('📡 Evento cart-cleared disparado');
+
+        // 5. Forzar actualización del DOM
+        setTimeout(() => {
+            window.dispatchEvent(new Event('storage'));
+            console.log('📡 Evento storage disparado');
+            
+            // Verificación final
+            const carritosRestantes = Object.keys(localStorage).filter(key => key.startsWith('carrito_'));
+            console.log('🔍 Verificación final - carritos restantes:', carritosRestantes);
+        }, 100);
+
+        console.log('🎯 Limpieza del carrito completada');
+    };
+
+    // Cambiar el mensaje de recomendación cada 5 segundos
     useEffect(() => {
         const interval = setInterval(() => {
-            setMensajeIndex((prev) => (prev + 1) % recomendaciones.length);
-        }, 3000);
+            setMensajeIndex(prev => (prev + 1) % recomendaciones.length);
+        }, 5000);
         return () => clearInterval(interval);
+    }, []);
+
+    // Detectar pago exitoso al cargar la página
+    useEffect(() => {
+        const urlParams = new URLSearchParams(window.location.search);
+        const paymentStatus = urlParams.get('payment_status') || urlParams.get('status') || urlParams.get('payment');
+        const clearCart = urlParams.get('clearCart');
+        const collectionStatus = urlParams.get('collection_status');
+        const preferenceId = urlParams.get('preference-id');
+
+        console.log('🔍 Verificando parámetros de pago:', {
+            paymentStatus,
+            clearCart,
+            collectionStatus,
+            preferenceId,
+            allParams: Object.fromEntries(urlParams.entries())
+        });
+
+        // Detectar pago exitoso por varios parámetros posibles
+        const isPaymentSuccess = paymentStatus === 'success' ||
+            paymentStatus === 'approved' ||
+            collectionStatus === 'approved' ||
+            (preferenceId && window.location.pathname === '/'); // Si viene de MP con preference-id a la raíz
+
+        // También detectar si viene del referrer de Mercado Pago
+        const comeFromMercadoPago = document.referrer.includes('mercadopago.com') ||
+            document.referrer.includes('mercadolibre.com');
+
+        console.log('🔍 Información adicional:', {
+            referrer: document.referrer,
+            comeFromMercadoPago,
+            pathname: window.location.pathname,
+            href: window.location.href
+        });
+
+        if (isPaymentSuccess || (comeFromMercadoPago && (preferenceId || window.location.pathname === '/'))) {
+            // Limpiar el carrito después del pago exitoso
+            console.log('🎉 Pago exitoso detectado, limpiando carrito...');
+            forzarLimpiezaCarrito();
+
+            // Mostrar mensaje de éxito
+            Swal.fire({
+                title: '¡Pago exitoso!',
+                text: 'Tu compra ha sido procesada correctamente. El stock se ha actualizado automáticamente.',
+                icon: 'success',
+                confirmButtonColor: '#7c3aed',
+                timer: 4000,
+                showConfirmButton: true
+            }).then(() => {
+                // Asegurarse de que el carrito esté limpio después de mostrar el mensaje
+                console.log('🧹 Ejecutando limpieza adicional del carrito...');
+                forzarLimpiezaCarrito();
+            });
+
+            // Limpiar los parámetros de la URL
+            window.history.replaceState({}, document.title, window.location.pathname);
+        } else if (paymentStatus === 'failure') {
+            Swal.fire({
+                title: 'Pago fallido',
+                text: 'Hubo un problema con tu pago. Por favor, intenta nuevamente.',
+                icon: 'error',
+                confirmButtonColor: '#7c3aed'
+            });
+            window.history.replaceState({}, document.title, window.location.pathname);
+        } else if (paymentStatus === 'pending') {
+            Swal.fire({
+                title: 'Pago pendiente',
+                text: 'Tu pago está siendo procesado. Te notificaremos cuando esté completado.',
+                icon: 'info',
+                confirmButtonColor: '#7c3aed'
+            });
+            window.history.replaceState({}, document.title, window.location.pathname);
+        }
+    }, []);
+
+    // Verificación adicional de limpieza automática por pago exitoso
+    useEffect(() => {
+        const verificarLimpiezaEnInicio = async () => {
+            const clienteId = getUserId();
+            if (clienteId) {
+                try {
+                    console.log('🏠 Verificando limpieza de carrito en página de inicio...');
+                    const resultado = await verificarCarritoParaLimpiar(clienteId);
+                    
+                    if (resultado.limpiarCarrito) {
+                        console.log(`🎉 Pago exitoso detectado en inicio: ${resultado.pagoId}`);
+                        forzarLimpiezaCarrito();
+                        
+                        Swal.fire({
+                            title: '¡Pago exitoso!',
+                            text: 'Tu compra ha sido procesada correctamente. El stock se ha actualizado automáticamente.',
+                            icon: 'success',
+                            confirmButtonColor: '#7c3aed',
+                            timer: 4000,
+                            showConfirmButton: true
+                        });
+                    }
+                } catch (error) {
+                    console.error('❌ Error al verificar limpieza en inicio:', error);
+                }
+            }
+        };
+
+        // Verificar inmediatamente al cargar la página de inicio
+        verificarLimpiezaEnInicio();
     }, []);
 
     const handleCategoriaClick = (id_categoria: number) => {

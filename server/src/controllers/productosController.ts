@@ -89,3 +89,60 @@ export const getProductoById = async (req: Request, res: Response) => {
         res.status(500).json({ error: "Error al obtener el producto por ID" });
     }
 };
+
+// Función para verificar stock disponible
+export const verificarStock = async (req: Request, res: Response) => {
+    try {
+        const { id } = req.params;
+        const producto = await Productos.findByPk(id);
+
+        if (!producto) {
+            return res.status(404).json({ error: "Producto no encontrado" });
+        }
+
+        // Verificar si el producto tiene stock disponible (mayor a stock de seguridad)
+        const stockDisponible = producto.stock > producto.stock_seguridad;
+
+        res.json({
+            id_producto: producto.id_producto,
+            descripcion: producto.descripcion,
+            stock_actual: producto.stock,
+            stock_seguridad: producto.stock_seguridad,
+            stock_disponible: stockDisponible,
+            cantidad_disponible: Math.max(0, producto.stock - producto.stock_seguridad)
+        });
+    } catch (error) {
+        console.error('Error al verificar stock:', error);
+        res.status(500).json({ error: "Error al verificar el stock del producto" });
+    }
+};
+
+// Función para actualizar stock (para uso administrativo)
+export const actualizarStock = async (req: Request, res: Response) => {
+    try {
+        const { id } = req.params;
+        const { nuevo_stock } = req.body;
+
+        if (typeof nuevo_stock !== 'number' || nuevo_stock < 0) {
+            return res.status(400).json({ error: "El nuevo stock debe ser un número positivo" });
+        }
+
+        const producto = await Productos.findByPk(id);
+        if (!producto) {
+            return res.status(404).json({ error: "Producto no encontrado" });
+        }
+
+        const stockAnterior = producto.stock;
+        await producto.update({ stock: nuevo_stock });
+
+        res.json({
+            mensaje: "Stock actualizado correctamente",
+            producto: producto.descripcion,
+            stock_anterior: stockAnterior,
+            stock_nuevo: nuevo_stock
+        });
+    } catch (error) {
+        console.error('Error al actualizar stock:', error);
+        res.status(500).json({ error: "Error al actualizar el stock del producto" });
+    }
+};

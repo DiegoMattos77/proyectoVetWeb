@@ -124,7 +124,14 @@ router.post('/enviar-remito', async (req: Request, res: Response) => {
     // Pie de página
     doc.moveDown(2);
     doc.fontSize(10).text("¡Gracias por confiar en Vet Shop S.A.!", { align: "center" });
-    doc.text("Ante cualquier consulta, comuníquese con nosotros.", { align: "center" });
+    doc.moveDown(1);
+
+    // Observaciones importantes ocupando toda la página
+    doc.fontSize(10).font("Helvetica-Bold").text("OBSERVACIONES:", 40, doc.y, { align: "left", width: doc.page.width - 80 });
+    doc.font("Helvetica").text("• Para retirar los productos seleccionados, debe entregar el presente remito y realizar el pago en mostrador.", 40, doc.y, { align: "left", width: doc.page.width - 80 });
+    doc.text("• Conserve este documento como comprobante de su reserva.", 40, doc.y, { align: "left", width: doc.page.width - 80 });
+    doc.moveDown(1);
+    doc.fontSize(10).text("Ante cualquier consulta, comuníquese con nosotros.", { align: "center" });
 
     doc.end();
 });
@@ -212,7 +219,14 @@ router.post('/descargar-remito', async (req: Request, res: Response) => {
 
     doc.moveDown(2);
     doc.fontSize(10).text("¡Gracias por confiar en Vet Shop S.A.!", { align: "center" });
-    doc.text("Ante cualquier consulta, comuníquese con nosotros.", { align: "center" });
+    doc.moveDown(1);
+
+    // Observaciones importantes ocupando toda la página
+    doc.fontSize(10).font("Helvetica-Bold").text("OBSERVACIONES:", 40, doc.y, { align: "left", width: doc.page.width - 80 });
+    doc.font("Helvetica").text("• Para retirar los productos seleccionados, debe entregar el presente remito y realizar el pago en mostrador.", 40, doc.y, { align: "left", width: doc.page.width - 80 });
+    doc.text("• Conserve este documento como comprobante de su reserva.", 40, doc.y, { align: "left", width: doc.page.width - 80 });
+    doc.moveDown(1);
+    doc.fontSize(10).text("Ante cualquier consulta, comuníquese con nosotros.", { align: "center" });
 
     doc.end();
 });

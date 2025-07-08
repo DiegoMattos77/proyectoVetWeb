@@ -21,7 +21,7 @@ const MiCarrito: React.FC<MiCarritoProps> = ({ onClose }) => {
     const [nombre, setNombre] = useState<string | null>(null);
     const [userId, setUserId] = useState<string | null>(null);
     const [loading, setLoading] = useState(false);
-    const [retiro, setRetiro] = useState("central"); // "central" o "sucursal"
+    const [retiro, setRetiro] = useState("sucursal"); // "central" o "sucursal"
     const [enviando, setEnviando] = useState(false);
     const mpButtonRef = useRef<HTMLDivElement>(null);
 
@@ -54,11 +54,21 @@ const MiCarrito: React.FC<MiCarritoProps> = ({ onClose }) => {
             description: producto.descripcion,
         }));
 
+        // Crear external_reference con datos del carrito
+        const carritoData = carrito.map(p => ({ id: p.id_producto, qty: p.cantidad }));
+        const external_reference = `pedido_${Date.now()}_cliente_${userId}_carrito_${btoa(JSON.stringify(carritoData))}`;
+
         try {
             const response = await fetch("http://localhost:4000/api/preferences", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ items, retiro, id_cliente: userId }),
+                body: JSON.stringify({
+                    items,
+                    retiro,
+                    id_cliente: userId,
+                    external_reference,
+                    carrito_backup: carritoData // backup adicional
+                }),
             });
 
             if (!response.ok) throw new Error("Error al crear la preferencia de pago");
@@ -197,17 +207,7 @@ const MiCarrito: React.FC<MiCarritoProps> = ({ onClose }) => {
                     <div className="mb-4">
                         <label className="block font-semibold mb-2 text-gray-700">¿Dónde querés retirar tu compra?</label>
                         <div className="flex gap-4">
-                            <label className="flex items-center">
-                                <input
-                                    type="radio"
-                                    name="retiro"
-                                    value="central"
-                                    checked={retiro === "central"}
-                                    onChange={e => setRetiro(e.target.value)}
-                                    className="mr-2"
-                                />
-                                Sucursal Posadas
-                            </label>
+
                             <label className="flex items-center">
                                 <input
                                     type="radio"
@@ -218,6 +218,18 @@ const MiCarrito: React.FC<MiCarritoProps> = ({ onClose }) => {
                                     className="mr-2"
                                 />
                                 Sucursal L.N Alem
+                            </label>
+
+                            <label className="flex items-center opacity-60 cursor-not-allowed">
+                                <input
+                                    type="radio"
+                                    name="retiro"
+                                    value="central"
+                                    checked={false}
+                                    disabled={true}
+                                    className="mr-2 cursor-not-allowed"
+                                />
+                                <span className="text-gray-500">Sucursal Posadas (Próximamente)</span>
                             </label>
                         </div>
                     </div>

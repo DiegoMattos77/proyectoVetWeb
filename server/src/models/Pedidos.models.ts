@@ -40,6 +40,27 @@ class pedidos extends Model {
     })
     fecha_pedido: Date;
 
+    @Column({
+        type: DataType.DECIMAL(10, 2),
+        allowNull: false,
+        defaultValue: 0
+    })
+    importe: number;
+
+    @Column({
+        type: DataType.INTEGER,
+        allowNull: false,
+        defaultValue: 0
+    })
+    anulacion: number;
+
+    @Column({
+        type: DataType.INTEGER,
+        allowNull: false,
+        defaultValue: 1
+    })
+    venta_web: number;
+
     @BelongsTo(() => Cliente)
     cliente: Cliente;
 

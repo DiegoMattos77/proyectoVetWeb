@@ -13,6 +13,7 @@ import Sucursalvet from "./views/Sucursal";
 import TerminosCondiciones from "./views/TerminosCondiciones";
 import PreguntasFrecuentes from "./views/PreguntasFrecuentes";
 import Blog from "./views/Blog";
+import PaymentConfirmation from "./views/PaymentConfirmation";
 
 
 export const router = createBrowserRouter([
@@ -65,7 +66,7 @@ export const router = createBrowserRouter([
         action: actionEditarCliente,
         loader: loaderEditarCliente
     },
-    
+
     {
         path: '/MiCarrito',
         element: <MiCarrito onClose={function (): void {
@@ -83,11 +84,15 @@ export const router = createBrowserRouter([
     {
         path: "/locales",
         element: <Sucursalvet />
-      },
-      {
+    },
+    {
         path: "/blog",
-        element: < Blog /> 
-      }
-    
+        element: < Blog />
+    },
+    {
+        path: "/payment-confirmation",
+        element: <PaymentConfirmation />
+    }
+
 
 ]);
