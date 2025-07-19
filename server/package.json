@@ -37,6 +37,7 @@
     "mysql2": "^3.11.3",
     "nodemailer": "^7.0.4",
     "pdfkit": "^0.17.1",
+    "puppeteer": "^24.14.0",
     "sequelize": "^6.37.3",
     "sequelize-typescript": "^2.1.6"
   }

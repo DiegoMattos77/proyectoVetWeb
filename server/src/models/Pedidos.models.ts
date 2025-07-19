@@ -1,4 +1,4 @@
-import { Table, Column, DataType, Model, Default, ForeignKey, BelongsTo } from 'sequelize-typescript';
+import { Table, Column, DataType, Model, Default, ForeignKey, BelongsTo, HasMany } from 'sequelize-typescript';
 import Cliente from './Clientes.models';
 
 @Table({
@@ -9,10 +9,10 @@ import Cliente from './Clientes.models';
 class pedidos extends Model {
 
     @Column({
-        type: DataType.INTEGER,
+        type: DataType.INTEGER.UNSIGNED, // Coincidir con la BD: int unsigned
         allowNull: false,
         primaryKey: true,
-        autoIncrement: true,
+        autoIncrement: false,
         get() {
             const rawValue = this.getDataValue('id_pedido');
             return rawValue ? rawValue.toString().padStart(7, '0') : null;
@@ -60,6 +60,12 @@ class pedidos extends Model {
         defaultValue: 1
     })
     venta_web: number;
+
+    @Column({
+        type: DataType.STRING(255),
+        allowNull: true
+    })
+    payment_id: string;
 
     @BelongsTo(() => Cliente)
     cliente: Cliente;

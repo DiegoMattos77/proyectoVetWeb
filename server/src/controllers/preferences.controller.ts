@@ -93,7 +93,7 @@ export const createPreference = async (req: Request, res: Response) => {
     console.log(`Cliente encontrado: ${cliente.mail}`);
 
     // Obtener la URL base desde variables de entorno o construirla dinámicamente
-    const baseUrl = process.env.NGROK_URL || process.env.BASE_URL || `https://d4312eac4f50.ngrok-free.app`;
+    const baseUrl = process.env.NGROK_URL || process.env.BASE_URL;
     console.log('🔗 URL base para redirecciones:', baseUrl);
 
     // Configuración de la preferencia con datos reales
@@ -257,6 +257,24 @@ export const getPreference = async (req: Request, res: Response) => {
       details: error instanceof Error ? error.message : 'Unknown error'
     });
   }
+};
 
+export const getPublicKey = async (req: Request, res: Response) => {
+  try {
+    const publicKey = process.env.MP_PUBLIC_KEY;
 
+    if (!publicKey) {
+      return res.status(500).json({ error: 'Public key not configured' });
+    }
+
+    res.status(200).json({
+      public_key: publicKey
+    });
+  } catch (error: any) {
+    console.error('Error getting public key:', error?.message || error);
+    res.status(500).json({
+      error: 'Failed to get public key',
+      details: error instanceof Error ? error.message : 'Unknown error'
+    });
+  }
 };

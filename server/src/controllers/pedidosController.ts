@@ -7,21 +7,11 @@ export const createPedido = async (req: Request, res: Response) => {
     try {
         // Usar transacción para evitar conflictos de concurrencia
         const nuevoPedido = await db.transaction(async (t) => {
-            // Obtener el último id_pedido y bloquear la fila hasta que termine la transacción
-            const ultimoPedido = await pedidos.findOne({
-                order: [['id_pedido', 'DESC']],
-                limit: 1,
-                lock: t.LOCK.UPDATE,  // Bloquear para evitar lecturas concurrentes
-                transaction: t
-            });
-
-            // Calcular el nuevo ID
-            const nuevoId = ultimoPedido ? ultimoPedido.id_pedido + 1 : 1;
             const id_empleadoWeb = 4;  // ID del empleado de ventas web 
 
-            // Crear el nuevo pedido con el nuevo ID
+            // Crear el nuevo pedido - el ID se generará automáticamente
             const pedidoCreado = await pedidos.create({
-                id_pedido: nuevoId,   // Asignar el nuevo ID calculado
+                // NO asignar id_pedido - se genera automáticamente
                 id_cliente: req.body.id_cliente,
                 id_empleados: id_empleadoWeb,
                 fecha_pedido: req.body.fecha_pedido,
@@ -96,4 +86,28 @@ export const getPedido = async (req: Request, res: Response) => {
 //         res.status(500).json({ error: error.messaje });
 //     }
 // };
+
+// Obtener pedido por payment_id
+export const getPedidoByPaymentId = async (req: Request, res: Response) => {
+    try {
+        const { paymentId } = req.params;
+        console.log('🔍 Buscando pedido con payment_id:', paymentId);
+
+        // Buscar pedido que tenga este payment_id en su campo payment_id
+        const pedido = await pedidos.findOne({
+            where: { payment_id: paymentId }
+        });
+
+        if (pedido) {
+            console.log('✅ Pedido encontrado:', pedido.id_pedido);
+            res.status(200).json(pedido);
+        } else {
+            console.log('❌ No se encontró pedido con payment_id:', paymentId);
+            res.status(404).json({ error: "No se encontró pedido con ese payment_id" });
+        }
+    } catch (error) {
+        console.error('Error al buscar pedido por payment_id:', error);
+        res.status(500).json({ error: error.message });
+    }
+};
 

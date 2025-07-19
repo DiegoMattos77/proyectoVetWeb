@@ -14,6 +14,7 @@ import TerminosCondiciones from "./views/TerminosCondiciones";
 import PreguntasFrecuentes from "./views/PreguntasFrecuentes";
 import Blog from "./views/Blog";
 import PaymentConfirmation from "./views/PaymentConfirmation";
+import MisFacturas from "./views/MisFacturas";
 
 
 export const router = createBrowserRouter([
@@ -45,6 +46,11 @@ export const router = createBrowserRouter([
             {
                 path: "/preguntas-frecuentes",
                 element: <PreguntasFrecuentes />
+            },
+
+            {
+                path: "/mis-facturas",
+                element: <MisFacturas />
             }
 
         ],

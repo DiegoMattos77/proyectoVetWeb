@@ -22,14 +22,86 @@ const MiCarrito: React.FC<MiCarritoProps> = ({ onClose }) => {
     const [userId, setUserId] = useState<string | null>(null);
     const [loading, setLoading] = useState(false);
     const [retiro, setRetiro] = useState("sucursal"); // "central" o "sucursal"
+    const [retiroSucursal, setRetiroSucursal] = useState(false); // Estado para el checkbox
     const [enviando, setEnviando] = useState(false);
+    const [publicKey, setPublicKey] = useState<string | null>(null);
+    const [paymentInProgress, setPaymentInProgress] = useState(false); // Nuevo estado para tracking de pago
     const mpButtonRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
         const nombreUsuario = getUserName();
         setNombre(nombreUsuario);
         setUserId(getUserId());
+
+        // Obtener la Public Key de Mercado Pago
+        const getPublicKey = async () => {
+            try {
+                const response = await fetch("http://localhost:4000/api/mp-public-key");
+                if (response.ok) {
+                    const data = await response.json();
+                    setPublicKey(data.public_key);
+                }
+            } catch (error) {
+                console.error("Error obteniendo public key:", error);
+            }
+        };
+
+        getPublicKey();
     }, []);
+
+    // Detectar cuando el usuario vuelve a la pestaña después de un pago
+    useEffect(() => {
+        const handleVisibilityChange = () => {
+            if (!document.hidden && paymentInProgress) {
+                console.log("Usuario volvió a la pestaña, verificando estado del carrito...");
+                
+                // Pequeño delay para asegurar que el webhook se procesó
+                setTimeout(() => {
+                    // Verificar si el carrito se vació (señal de pago exitoso)
+                    const currentCartSize = carrito.length;
+                    console.log("Tamaño actual del carrito:", currentCartSize);
+                    
+                    // Si había items y ahora está vacío, o si verificamos externamente
+                    if (currentCartSize === 0 && paymentInProgress) {
+                        console.log("Carrito vacío detectado, recargando página...");
+                        setPaymentInProgress(false);
+                        window.location.reload();
+                    } else {
+                        // Verificar con el servidor si hay un pago reciente para este usuario
+                        checkRecentPayment();
+                    }
+                }, 2000); // 2 segundos de delay
+            }
+        };
+
+        const checkRecentPayment = async () => {
+            try {
+                const response = await fetch(`http://localhost:4000/api/verificar-pago-reciente/${userId}`);
+                if (response.ok) {
+                    const data = await response.json();
+                    if (data.paymentFound) {
+                        console.log("Pago reciente encontrado, recargando...");
+                        setPaymentInProgress(false);
+                        window.location.reload();
+                    }
+                }
+            } catch (error) {
+                console.log("Error verificando pago reciente:", error);
+            } finally {
+                // Resetear el estado después de 30 segundos si no se encontró pago
+                setTimeout(() => {
+                    setPaymentInProgress(false);
+                }, 30000);
+            }
+        };
+
+        document.addEventListener('visibilitychange', handleVisibilityChange);
+
+        // Cleanup
+        return () => {
+            document.removeEventListener('visibilitychange', handleVisibilityChange);
+        };
+    }, [paymentInProgress, carrito.length, userId]);
 
     // Limpia el botón de Mercado Pago al desmontar o cerrar
     useEffect(() => {
@@ -45,6 +117,9 @@ const MiCarrito: React.FC<MiCarritoProps> = ({ onClose }) => {
     const handlePagar = async () => {
         if (carrito.length === 0) return;
         setLoading(true);
+        setPaymentInProgress(true); // Activar tracking de pago
+
+        console.log("Iniciando proceso de pago, activando tracking...");
 
         const items = carrito.map(producto => ({
             id: producto.id_producto,
@@ -76,21 +151,34 @@ const MiCarrito: React.FC<MiCarritoProps> = ({ onClose }) => {
             const data = await response.json();
             setLoading(false);
 
-            if (data.id && window.MercadoPago) {
+            if (data.id && window.MercadoPago && publicKey) {
                 if (mpButtonRef.current) mpButtonRef.current.innerHTML = "";
-                const mp = new window.MercadoPago("APP_USR-fa28cccc-92b4-4b93-87c4-e82835b0aee8", { locale: "es-AR" });
-                mp.checkout({
-                    preference: { id: data.id },
-                    render: {
-                        container: ".mp-button", // ✅ Esto es un selector CSS válido
-                        label: "Pagar con Mercado Pago",
-                    },
-                });
+
+                try {
+                    const mp = new window.MercadoPago(publicKey, { locale: "es-AR" });
+                    mp.checkout({
+                        preference: { id: data.id },
+                        render: {
+                            container: ".mp-button",
+                            label: "Pagar con Mercado Pago",
+                        },
+                    });
+                } catch (mpError) {
+                    // Silenciar errores de tracking/analytics de MercadoPago
+                    console.warn("Error de MercadoPago (no crítico):", mpError);
+                    // El botón de pago debería seguir funcionando
+                }
             } else {
-                alert("No se pudo iniciar el pago. Intenta nuevamente.");
+                setPaymentInProgress(false); // Desactivar tracking si falla
+                if (!publicKey) {
+                    alert("Error de configuración. Public Key no disponible.");
+                } else {
+                    alert("No se pudo iniciar el pago. Intenta nuevamente.");
+                }
             }
         } catch (error) {
             setLoading(false);
+            setPaymentInProgress(false); // Desactivar tracking si hay error
             alert("Ocurrió un error al procesar el pago.");
             console.error(error);
         }
@@ -204,33 +292,33 @@ const MiCarrito: React.FC<MiCarritoProps> = ({ onClose }) => {
                     </p>
 
                     {/* Selección de retiro SOLO si hay productos */}
-                    <div className="mb-4">
-                        <label className="block font-semibold mb-2 text-gray-700">¿Dónde querés retirar tu compra?</label>
-                        <div className="flex gap-4">
-
-                            <label className="flex items-center">
+                    <div className="mb-6">
+                        <label className="block font-semibold mb-3 text-gray-700">Opciones de compra</label>
+                        <div className="space-y-3">
+                            <label className="flex items-center p-3 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
                                 <input
-                                    type="radio"
-                                    name="retiro"
-                                    value="sucursal"
-                                    checked={retiro === "sucursal"}
-                                    onChange={e => setRetiro(e.target.value)}
-                                    className="mr-2"
+                                    type="checkbox"
+                                    checked={retiroSucursal}
+                                    onChange={(e) => {
+                                        setRetiroSucursal(e.target.checked);
+                                        // Si se marca el checkbox, forzamos retiro = "sucursal"
+                                        if (e.target.checked) {
+                                            setRetiro("sucursal");
+                                        }
+                                    }}
+                                    className="mr-3 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
                                 />
-                                Sucursal L.N Alem
+                                <div>
+                                    <span className="text-gray-800 font-medium">Retiro en Sucursal L.N Alem</span>
+                                    <p className="text-sm text-gray-600">
+                                        Selecciona para retirar en sucursal y generar remito
+                                    </p>
+                                </div>
                             </label>
 
-                            <label className="flex items-center opacity-60 cursor-not-allowed">
-                                <input
-                                    type="radio"
-                                    name="retiro"
-                                    value="central"
-                                    checked={false}
-                                    disabled={true}
-                                    className="mr-2 cursor-not-allowed"
-                                />
-                                <span className="text-gray-500">Sucursal Posadas (Próximamente)</span>
-                            </label>
+                            <div className="text-sm text-gray-500 italic ml-7">
+                                💡 Con retiro en sucursal puedes descargar o enviar remito por email
+                            </div>
                         </div>
                     </div>
 
@@ -244,39 +332,86 @@ const MiCarrito: React.FC<MiCarritoProps> = ({ onClose }) => {
                         <span className="text-lg font-semibold">{formatCurrency(calcularTotal())}</span>
                     </div>
                     <div className="mt-4 text-center">
-                        <span className="inline-block bg-blue-100 border border-blue-300 text-blue-800 px-4 py-2 rounded-lg text-base font-semibold shadow-sm">
-                            Retiro seleccionado: {retiro === "central"
-                                ? "Sucursal Posadas"
-                                : retiro === "sucursal"
-                                    ? "Sucursal L.N Alem"
-                                    : "No seleccionado"}
+                        <span className={`inline-block px-4 py-2 rounded-lg text-base font-semibold shadow-sm border ${retiroSucursal
+                                ? "bg-green-100 border-green-300 text-green-800"
+                                : "bg-yellow-100 border-yellow-300 text-yellow-800"
+                            }`}>
+                            {retiroSucursal
+                                ? "✅ Retiro en Sucursal L.N Alem seleccionado"
+                                : "⚠️ Selecciona retiro en sucursal para opciones de remito"}
                         </span>
                     </div>
+
+                    {/* Indicador de pago en progreso */}
+                    {paymentInProgress && (
+                        <div className="mt-4 text-center">
+                            <div className="inline-block bg-blue-100 border border-blue-300 text-blue-800 px-4 py-2 rounded-lg text-sm font-medium shadow-sm">
+                                <div className="flex items-center justify-center space-x-2">
+                                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-800"></div>
+                                    <span>🔄 Esperando confirmación de pago...</span>
+                                </div>
+                                <div className="text-xs mt-1 text-blue-600">
+                                    El carrito se actualizará automáticamente cuando regreses de Mercado Pago
+                                </div>
+                            </div>
+                        </div>
+                    )}
                 </>
             )}
 
             <div className="space-y-4 text-center mt-6">
+                {/* Botón de Mercado Pago - Se deshabilita si se selecciona retiro en sucursal */}
                 <button
-                    disabled={carrito.length === 0 || loading}
+                    disabled={carrito.length === 0 || loading || retiroSucursal}
                     onClick={handlePagar}
-                    className={`w-full rounded px-4 py-3 text-sm font-medium text-white transition ${carrito.length > 0 ? "bg-blue-600 hover:bg-blue-500" : "bg-gray-400 cursor-not-allowed"
+                    className={`w-full rounded px-4 py-3 text-sm font-medium text-white transition ${carrito.length > 0 && !retiroSucursal
+                            ? "bg-blue-600 hover:bg-blue-500"
+                            : "bg-gray-400 cursor-not-allowed"
                         }`}
                 >
-                    {loading ? "Cargando..." : "Pagar con Mercado Pago"}
+                    {retiroSucursal
+                        ? "Pago online no disponible con retiro en sucursal"
+                        : loading ? "Cargando..." : "Pagar con Mercado Pago"
+                    }
                 </button>
+
+                {/* Separador visual */}
+                {retiroSucursal && (
+                    <div className="flex items-center my-4">
+                        <div className="flex-grow border-t border-gray-300"></div>
+                        <span className="px-3 text-sm text-gray-500 bg-white">Opciones de remito</span>
+                        <div className="flex-grow border-t border-gray-300"></div>
+                    </div>
+                )}
+
+                {/* Botón descargar remito - Solo habilitado si se selecciona retiro en sucursal */}
                 <button
-                    disabled={carrito.length === 0}
+                    disabled={carrito.length === 0 || !retiroSucursal}
                     onClick={handleDescargarRemito}
-                    className="w-full rounded px-4 py-3 text-sm font-medium text-blue-700 border border-blue-700 bg-white hover:bg-blue-50 transition"
+                    className={`w-full rounded px-4 py-3 text-sm font-medium border transition ${carrito.length > 0 && retiroSucursal
+                            ? "text-blue-700 border-blue-700 bg-white hover:bg-blue-50"
+                            : "text-gray-400 border-gray-300 bg-gray-50 cursor-not-allowed"
+                        }`}
                 >
-                    Descargar remito (PDF)
+                    {!retiroSucursal
+                        ? "📄 Descargar remito (requiere retiro en sucursal)"
+                        : "📄 Descargar remito (PDF)"
+                    }
                 </button>
+
+                {/* Botón enviar remito por email - Solo habilitado si se selecciona retiro en sucursal */}
                 <button
-                    disabled={carrito.length === 0 || enviando}
+                    disabled={carrito.length === 0 || enviando || !retiroSucursal}
                     onClick={handleEnviarRemito}
-                    className="w-full rounded px-4 py-3 text-sm font-medium text-green-700 border border-green-700 bg-white hover:bg-green-50 transition"
+                    className={`w-full rounded px-4 py-3 text-sm font-medium border transition ${carrito.length > 0 && retiroSucursal
+                            ? "text-green-700 border-green-700 bg-white hover:bg-green-50"
+                            : "text-gray-400 border-gray-300 bg-gray-50 cursor-not-allowed"
+                        }`}
                 >
-                    {enviando ? "Enviando..." : "Enviar remito por email"}
+                    {!retiroSucursal
+                        ? "📧 Enviar remito por email (requiere retiro en sucursal)"
+                        : enviando ? "Enviando..." : "📧 Enviar remito por email"
+                    }
                 </button>
                 {/* Aquí se renderiza el botón de Mercado Pago */}
                 <div ref={mpButtonRef} className="mt-2 mp-button"></div>

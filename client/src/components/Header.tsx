@@ -243,7 +243,7 @@ const Header: React.FC = () => {
                             </div>
                         ) : (
                             <>
-                            
+
                                 <button
                                     onClick={openCart}
                                     className="relative rounded-full bg-violetPalette-muted p-1 text-gray-50 hover:text-white focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-gray-200"
@@ -257,10 +257,10 @@ const Header: React.FC = () => {
                                 </button>
                                 <span className="text-gray-50 text-sm">Bienvenido {nombre}</span>
 
-                                    <div className="relative flex flex-col items-center" ref={accountMenuRef}>
+                                <div className="relative flex flex-col items-center" ref={accountMenuRef}>
                                     <button
                                         className="text-violetPalette-muted"
-                                            onClick={() => setIsAccountMenuOpen((prev) => !prev)}
+                                        onClick={() => setIsAccountMenuOpen((prev) => !prev)}
                                     >
                                         <FaUserCircle size={28} />
                                     </button>
@@ -270,21 +270,26 @@ const Header: React.FC = () => {
                                         <div
                                             className="absolute right-0 top-full mt-2 w-48 bg-white border border-gray-200 rounded-md shadow-lg z-10"
                                         >
-                                                <ul className="py-1">
-                                                    <li>
-                                                        <Link to='/editarme' className="block px-4 py-2 text-gray-700 hover:bg-gray-100">
-                                                            Perfil
-                                                        </Link>
-                                                    </li>
-                                                    <li>
-                                                        <button
-                                                            onClick={handleLogout}
-                                                            className="block w-full text-left px-4 py-2 text-gray-700 hover:bg-gray-100"
-                                                        >
-                                                            Cerrar Sesión
-                                                        </button>
-                                                    </li>
-                                                </ul>
+                                            <ul className="py-1">
+                                                <li>
+                                                    <Link to='/editarme' className="block px-4 py-2 text-gray-700 hover:bg-gray-100">
+                                                        📝 Perfil
+                                                    </Link>
+                                                </li>
+                                                <li>
+                                                    <Link to='/mis-facturas' className="block px-4 py-2 text-gray-700 hover:bg-gray-100">
+                                                        📄 Mis Facturas
+                                                    </Link>
+                                                </li>
+                                                <li>
+                                                    <button
+                                                        onClick={handleLogout}
+                                                        className="block w-full text-left px-4 py-2 text-gray-700 hover:bg-gray-100"
+                                                    >
+                                                        🚪 Cerrar Sesión
+                                                    </button>
+                                                </li>
+                                            </ul>
                                         </div>
                                     )}
                                 </div>

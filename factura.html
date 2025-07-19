@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Factura</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        p {
+            font-size: 10pt;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 10px auto;
+            padding: 10px;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            background-color: #f2f2f2;
+            padding: 10px;
+        }
+
+        .logo {
+            margin-right: auto;
+            width: 150px;
+
+        }
+
+        .logo img {
+            max-width: 100%;
+            height: auto;
+
+        }
+
+        .company-info {
+            text-align: left;
+            margin-left: 30px;
+        }
+
+        .invoice-details {
+            text-align: center;
+            flex-grow: 1;
+        }
+
+        .invoice-details h1 {
+            margin: 0;
+        }
+
+        .number-date {
+            text-align: right;
+        }
+
+        .customer-details {
+            margin-bottom: 20px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        th,
+        td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+
+        th {
+            background-color: #f2f2f2;
+        }
+
+        .total {
+            text-align: right;
+
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="logo">
+                <img src="{{imagen}}" alt=>
+            </div>
+            <div class="company-info">
+                <p><strong>Veterinaria El Ceibo</strong> </p>
+                <p><strong>Gobernador Roca Mnes.</strong> </p>
+                <p><strong>Tel:</strong> 376 411 2233</p>
+                <p><strong>CUIT:</strong> 20-22444888-9</p>
+                <p><strong>Email:</strong> mail@mail.com</p>
+            </div>
+            <div class="invoice-details">
+                <h1>C</h1>
+            </div>
+            <div class="number-date">
+                <p><strong>Nro. Factura:</strong> {{numeroFactura}}</p>
+                <p><strong>Fecha:</strong> {{fecha}}</p>
+            </div>
+        </div>
+
+        <div class="customer-details">
+            <p><strong>Cliente:</strong> {{nombreCliente}}</p>
+            <p><strong>Dirección:</strong> {{direccionCliente}}</p>
+            <p><strong>Teléfono:</strong> {{telefonoCliente}}</p>
+            <p><strong>CUIT/CUIL:</strong> {{cuitCuil}}</p>
+        </div>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>Codigo</th>
+                    <th>Descripción</th>
+                    <th>Precio Unitario</th>
+                    <th>Cantidad</th>
+                    <!-- <th>Sub Total</th> -->
+                </tr>
+            </thead>
+            <tbody>
+                {{filasProductos}} <!-- Las filas de productos se llenarán dinámicamente desde la base de datos -->
+            </tbody>
+        </table>
+
+        <div class="total">
+            <!-- <p><strong>IVA:</strong> 21%</p> -->
+            <p><strong>Total:</strong> {{total}}</p>
+        </div>
+    </div>
+</body>
+
+</html>

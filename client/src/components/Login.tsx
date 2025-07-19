@@ -12,22 +12,27 @@ type LoginFormProps = {
 export async function action({ request }: ActionFunctionArgs) {
     const data = Object.fromEntries(await request.formData());
 
+    console.log("Datos del formulario:", data);
+
     if (Object.values(data).some(value => value === "")) {
         toast.error("Todos los campos son obligatorios");
         return null;
     }
 
     try {
-        await login(data);
-        return window.location.href = "/"
+        const result = await login(data);
+        console.log("Login exitoso:", result);
+        window.location.href = "/";
+        return null;
 
     } catch (error: unknown) {
+        console.log("Error en el login:", error);
         if (error instanceof Error) {
             toast.error(error.message);
-            return error.message;
+            return { error: error.message };
         }
         toast.error("Error inesperado");
-        return "Error inesperado";
+        return { error: "Error inesperado" };
     }
 }
 
@@ -44,14 +49,15 @@ const LoginForm = ({ login }: LoginFormProps) => {
                 <Form method="POST">
                     <div className="space-y-4">
                         <div>
-                            <label className="block mb-2 text-sm">Nombre de usuario</label>
+                            <label className="block mb-2 text-sm">Correo electrónico</label>
                             <input
                                 defaultValue={login?.mail}
-                                type="text"
+                                type="email"
                                 name="mail"
                                 id="mail"
-                                placeholder="Nombre de usuario"
+                                placeholder="Correo electrónico"
                                 className="w-full px-3 py-2 border rounded-md border-gray-300 bg-gray-100 text-gray-900"
+                                required
                             />
                         </div>
                         <div>
@@ -67,6 +73,7 @@ const LoginForm = ({ login }: LoginFormProps) => {
                                 id="password"
                                 placeholder="********"
                                 className="w-full px-3 py-2 border rounded-md border-gray-300 bg-gray-100 text-gray-900 mb-4"
+                                required
                             />
                         </div>
                     </div>

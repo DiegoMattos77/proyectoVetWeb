@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { createPedido, getPedido } from "../controllers/pedidosController";
+import { createPedido, getPedido, getPedidoByPaymentId } from "../controllers/pedidosController";
 import { body, param } from 'express-validator';
 import { inputErrors } from '../middleware';
 
@@ -13,5 +13,8 @@ router.post('/',
     inputErrors, createPedido);
 
 router.get('/', getPedido);
+
+// Ruta para buscar pedido por payment_id
+router.get('/payment/:paymentId', getPedidoByPaymentId);
 
 export default router;

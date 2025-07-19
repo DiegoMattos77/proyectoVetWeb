@@ -8,6 +8,8 @@ import Pedidos from '../models/Pedidos.models';
 import DetallePedidos from '../models/DetallePedidos.models';
 import { db } from '../config/db';
 import { marcarPagoExitoso } from './carritoController';
+import jwt from "jsonwebtoken";
+import axios from 'axios';
 
 // Cache para evitar procesar el mismo pago dos veces
 const processedPayments = new Set<string>();
@@ -45,7 +47,7 @@ const crearPedidoEnBD = async (items: any[], external_reference: string, payment
             transaction
         });
 
-        const proximoIdPedido = ultimoPedido ? ultimoPedido.id_pedido + 1 : 1;
+        const proximoIdPedido = ultimoPedido ? parseInt(ultimoPedido.id_pedido.toString()) + 1 : 1;
         console.log(`🆔 Próximo ID de pedido: ${proximoIdPedido}`);
 
         // Calcular el importe total del pedido
@@ -74,7 +76,7 @@ const crearPedidoEnBD = async (items: any[], external_reference: string, payment
 
         console.log(`💰 Importe total calculado: $${importeTotal}`);
 
-        // Crear el pedido principal
+        // Crear el pedido principal con ID manual
         const nuevoPedido = await Pedidos.create({
             id_pedido: proximoIdPedido,
             id_cliente: id_cliente,
@@ -82,7 +84,8 @@ const crearPedidoEnBD = async (items: any[], external_reference: string, payment
             fecha_pedido: new Date(),
             importe: importeTotal,
             venta_web: 1, // Indicar que es venta web
-            anulacion: 0 // Por defecto no anulado
+            anulacion: 0, // Por defecto no anulado
+            payment_id: paymentId // Guardar el payment_id de Mercado Pago
         }, { transaction });
 
         console.log(`✅ Pedido creado: ${nuevoPedido.id_pedido} con importe: $${importeTotal}`);
@@ -90,7 +93,7 @@ const crearPedidoEnBD = async (items: any[], external_reference: string, payment
         // Crear los detalles del pedido
         for (const itemConPrecio of itemsConPrecios) {
             await DetallePedidos.create({
-                id_pedido: proximoIdPedido,
+                id_pedido: proximoIdPedido, // Usar el ID calculado manualmente
                 id_producto: parseInt(itemConPrecio.id),
                 precio_venta: itemConPrecio.precio_venta,
                 cantidad: itemConPrecio.cantidad,
@@ -108,7 +111,7 @@ const crearPedidoEnBD = async (items: any[], external_reference: string, payment
         console.log('✅ Pedido completo creado exitosamente en la BD');
 
         return {
-            id_pedido: proximoIdPedido,
+            id_pedido: proximoIdPedido, // Usar el ID calculado manualmente
             id_cliente: id_cliente,
             success: true
         };
@@ -147,12 +150,13 @@ const actualizarStock = async (items: any[]) => {
             }
 
             // Calcular nuevo stock
+            const stockAnterior = producto.stock; // Guardar el stock anterior ANTES de actualizar
             const nuevoStock = producto.stock - cantidadComprada;
 
             // Actualizar el stock
             await producto.update({ stock: nuevoStock }, { transaction });
 
-            console.log(`✅ Stock actualizado - Producto: ${producto.descripcion}, Stock anterior: ${producto.stock}, Cantidad vendida: ${cantidadComprada}, Stock nuevo: ${nuevoStock}`);
+            console.log(`✅ Stock actualizado - Producto: ${producto.descripcion}, Stock anterior: ${stockAnterior}, Cantidad vendida: ${cantidadComprada}, Stock nuevo: ${nuevoStock}`);
         }
 
         await transaction.commit();
@@ -184,6 +188,39 @@ const extraerDatosDelExternalReference = (externalRef: string) => {
     } catch (error) {
         console.error('Error al parsear external_reference:', error);
         return null;
+    }
+};
+
+// Función para generar factura automáticamente después del pago exitoso
+const generarFacturaAutomatica = async (pedidoId: number, clienteId: number, items: any[], total: number) => {
+    try {
+        console.log(`📄 Generando factura automática para pedido ${pedidoId}, cliente ${clienteId}`);
+
+        // Llamar al endpoint interno para generar la factura
+        const response = await axios.post(`http://localhost:4000/api/generar-factura-pedido/${pedidoId}`, {}, {
+            timeout: 30000 // 30 segundos de timeout
+        });
+
+        if (response.data.success) {
+            console.log(`✅ Factura generada: ${response.data.numeroFactura}`);
+            console.log(`📄 URL de descarga: ${response.data.downloadUrl}`);
+
+            return {
+                success: true,
+                numeroFactura: response.data.numeroFactura,
+                downloadUrl: response.data.downloadUrl,
+                mensaje: response.data.mensaje
+            };
+        } else {
+            throw new Error('Error en la respuesta del servicio de facturas');
+        }
+
+    } catch (error: any) {
+        console.error('❌ Error al generar factura automática:', error.message);
+        return {
+            success: false,
+            error: error.message
+        };
     }
 };
 
@@ -393,6 +430,22 @@ export const handleWebhook = async (req: Request, res: Response, next: NextFunct
                                 try {
                                     const pedidoResult = await crearPedidoEnBD(items, externalRef, paymentData.id.toString());
                                     console.log(`✅ Pedido creado en BD: ${pedidoResult.id_pedido} para cliente: ${pedidoResult.id_cliente}`);
+
+                                    // 3. NUEVO: Generar factura automáticamente después del pago exitoso
+                                    console.log('📄 Iniciando generación automática de factura...');
+                                    const facturaResult = await generarFacturaAutomatica(
+                                        pedidoResult.id_pedido,
+                                        pedidoResult.id_cliente,
+                                        items,
+                                        parseFloat((paymentData as any).transaction_amount || '0')
+                                    );
+
+                                    if (facturaResult.success) {
+                                        console.log(`✅ ${facturaResult.mensaje}`);
+                                    } else {
+                                        console.error(`❌ Error en factura: ${facturaResult.error}`);
+                                    }
+
                                 } catch (pedidoError) {
                                     console.error('❌ Error al crear pedido en BD:', pedidoError);
                                     // No lanzamos el error para no afectar el procesamiento del pago

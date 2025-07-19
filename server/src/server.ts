@@ -12,6 +12,8 @@ import paymentRouter from './router/payment.router';
 import preferencesRouter from './router/preferences.routes';
 import handlePaymentRedirect from './router/redirectrouter';
 import routerRemito from './router/routerRemito';
+import routerFactura from './router/routerFactura';
+import paymentVerificationRouter from './router/paymentVerification';
 
 
 
@@ -47,6 +49,8 @@ server.use('/api/payments', paymentRouter);
 server.use('/api', handlePaymentRedirect);
 server.use('/api', preferencesRouter);
 server.use('/api', routerRemito);
+server.use('/api', routerFactura);
+server.use('/api', paymentVerificationRouter);
 server.use('/api/carrito', carritoRouter);
 
 

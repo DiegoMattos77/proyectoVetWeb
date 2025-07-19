@@ -12,20 +12,27 @@ const RESTABLECER_PASSWORD_URL = `${import.meta.env.VITE_API_URL}/auth/restablec
 
 export async function login(data: LoginData): Promise<{ nombre: string, id_cliente: number }> {
     try {
+        console.log("Datos recibidos en AuthService:", data);
+
         const result = safeParse(LoginClienteSchema, {
             mail: data.mail,
             password: data.password,
         });
 
         if (!result.success) {
-            console.log(result.issues);
+            console.log("Error de validación:", result.issues);
             throw new Error("Formato incorrecto en los datos");
         }
+
+        console.log("Enviando request a:", LOGIN_URL);
+        console.log("Con datos:", result.output);
 
         const response = await axios.post(LOGIN_URL, {
             mail: result.output.mail,
             password: result.output.password,
         });
+
+        console.log("Respuesta del servidor:", response.data);
 
         // Espera que el backend devuelva { authenticated, data: { nombre, id_cliente }, token }
         const { authenticated, data: { nombre, id_cliente } = {}, token } = response.data;
@@ -44,10 +51,13 @@ export async function login(data: LoginData): Promise<{ nombre: string, id_clien
 
         return { nombre, id_cliente };
     } catch (error: any) {
-        console.error("Error en el login:", error);
+        console.error("Error completo en el login:", error);
+        console.error("Respuesta del error:", error.response);
+
         if (axios.isAxiosError(error) && error.response) {
             // Si el backend envía un mensaje personalizado, úsalo
             const backendMsg = error.response.data?.message || error.response.data?.error;
+            console.log("Mensaje del backend:", backendMsg);
             if (backendMsg) {
                 throw new Error(backendMsg);
             }
