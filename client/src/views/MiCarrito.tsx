@@ -128,7 +128,7 @@ const MiCarrito: React.FC<MiCarritoProps> = ({ onClose }) => {
                     console.log("🔍 Verificando pago (polling)...");
                     checkRecentPayment();
                 }, 5000); // Verificar cada 5 segundos
-            }, 60000); // Esperar 60 segundos antes de empezar
+            }, 30000); // Esperar 60 segundos antes de empezar
 
             // También configurar un timeout para resetear después de 5 minutos
             const resetTimeout = setTimeout(() => {

@@ -33,17 +33,18 @@ router.get('/verificar-pago-reciente/:clienteId', async (req: Request, res: Resp
             // Si se proporciona timestamp, verificar que el pago sea posterior
             if (since && typeof since === 'string') {
                 const inicioTimestamp = parseInt(since);
-                const paymentIdNumber = parseInt(pedidoReciente.payment_id);
-
-                // Usar el payment_id como aproximación de timestamp (los IDs de MP son secuenciales y más recientes = más altos)
-                console.log(`🔍 Comparando Payment ID ${paymentIdNumber} con timestamp inicio ${inicioTimestamp}`);
-
-                // También verificar por ID de pedido (más confiable)
                 const fechaPago = new Date(pedidoReciente.fecha_pedido).getTime();
-                const tiempoLimite = inicioTimestamp + (30 * 1000); // 30 segundos de gracia
 
-                if (fechaPago >= tiempoLimite || paymentIdNumber.toString().length > 11) { // Payment IDs modernos son más largos
-                    console.log(`✅ PAGO ES RECIENTE - aceptando`);
+                console.log(`🔍 VERIFICACIÓN ESTRICTA DE TIMESTAMP:`);
+                console.log(`   - Inicio proceso pago: ${new Date(inicioTimestamp).toISOString()}`);
+                console.log(`   - Fecha pedido BD: ${new Date(fechaPago).toISOString()}`);
+                console.log(`   - Payment ID: ${pedidoReciente.payment_id}`);
+                console.log(`   - Diferencia: ${fechaPago - inicioTimestamp}ms`);
+
+                // VERIFICACIÓN MÁS ESTRICTA: El pago debe ser posterior al timestamp de inicio
+                // Solo aceptamos si la fecha del pedido es DESPUÉS del timestamp de inicio
+                if (fechaPago > inicioTimestamp) {
+                    console.log(`✅ PAGO ES POSTERIOR AL INICIO - aceptando`);
                     res.json({
                         paymentFound: true,
                         pedido: {
@@ -54,7 +55,7 @@ router.get('/verificar-pago-reciente/:clienteId', async (req: Request, res: Resp
                         }
                     });
                 } else {
-                    console.log(`❌ PAGO ES DEMASIADO ANTIGUO - rechazando`);
+                    console.log(`❌ PAGO ES ANTERIOR AL INICIO DEL PROCESO - rechazando (diferencia: ${fechaPago - inicioTimestamp}ms)`);
                     res.json({ paymentFound: false });
                 }
             } else {
