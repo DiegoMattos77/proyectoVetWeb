@@ -7,7 +7,6 @@ import Productos from '../models/Productos.models';
 import Pedidos from '../models/Pedidos.models';
 import DetallePedidos from '../models/DetallePedidos.models';
 import { db } from '../config/db';
-import { marcarPagoExitoso } from './carritoController';
 import jwt from "jsonwebtoken";
 import axios from 'axios';
 
@@ -76,19 +75,26 @@ const crearPedidoEnBD = async (items: any[], external_reference: string, payment
 
         console.log(`💰 Importe total calculado: $${importeTotal}`);
 
-        // Crear el pedido principal con ID manual
-        const nuevoPedido = await Pedidos.create({
-            id_pedido: proximoIdPedido,
-            id_cliente: id_cliente,
-            id_empleados: 4, // Por defecto
-            fecha_pedido: new Date(),
-            importe: importeTotal,
-            venta_web: 1, // Indicar que es venta web
-            anulacion: 0, // Por defecto no anulado
-            payment_id: paymentId // Guardar el payment_id de Mercado Pago
-        }, { transaction });
+        // Crear el pedido principal con ID manual usando timestamp específico
+        const fechaActual = new Date();
+        console.log(`🕐 Fecha/hora actual UTC: ${fechaActual.toISOString()}`);
 
-        console.log(`✅ Pedido creado: ${nuevoPedido.id_pedido} con importe: $${importeTotal}`);
+        // Ajustar a zona horaria Argentina (UTC-3) - CORREGIDO
+        const fechaArgentina = new Date(fechaActual.getTime() - (3 * 60 * 60 * 1000));
+        const fechaMySQL = fechaArgentina.toISOString().slice(0, 19).replace('T', ' ');
+        console.log(`🕐 Fecha formateada para Argentina (UTC-3): ${fechaMySQL}`);
+        console.log(`🕐 Hora local actual debería ser: ${new Date().toLocaleString('es-AR', { timeZone: 'America/Argentina/Buenos_Aires' })}`);
+
+        // Usar query SQL directa con CAST para forzar DATETIME
+        await db.query(`
+            INSERT INTO pedidos (id_pedido, id_cliente, id_empleados, fecha_pedido, importe, venta_web, anulacion, payment_id) 
+            VALUES (?, ?, ?, CAST(? AS DATETIME), ?, ?, ?, ?)
+        `, {
+            replacements: [proximoIdPedido, id_cliente, 4, fechaMySQL, importeTotal, 1, 0, paymentId],
+            transaction
+        });
+
+        console.log(`✅ Pedido creado con DATETIME Argentina: ${proximoIdPedido} - ${fechaMySQL}`);
 
         // Crear los detalles del pedido
         for (const itemConPrecio of itemsConPrecios) {
@@ -103,9 +109,8 @@ const crearPedidoEnBD = async (items: any[], external_reference: string, payment
             console.log(`✅ Detalle creado para producto ${itemConPrecio.producto.descripcion}, cantidad: ${itemConPrecio.cantidad}, subtotal: $${itemConPrecio.subtotal}`);
         }
 
-        // Marcar que el carrito debe limpiarse para este cliente
-        await marcarPagoExitoso(id_cliente.toString(), paymentId);
-        console.log(`🧹 Marcado para limpieza del carrito del cliente: ${id_cliente}`);
+        // El sistema nuevo consulta directamente la base de datos, no necesitamos marcar nada
+        console.log(`✅ Pedido creado exitosamente para cliente: ${id_cliente}. El sistema detectará automáticamente el pago.`);
 
         await transaction.commit();
         console.log('✅ Pedido completo creado exitosamente en la BD');
@@ -460,12 +465,10 @@ export const handleWebhook = async (req: Request, res: Response, next: NextFunct
                                 const clienteMatch = externalRef.match(/cliente_(\d+)/);
                                 if (clienteMatch) {
                                     const clienteId = clienteMatch[1];
-                                    console.log(`🧹 Marcando carrito para limpieza - Cliente: ${clienteId}, Pago: ${paymentData.id}`);
+                                    console.log(`✅ Pago procesado exitosamente - Cliente: ${clienteId}, Pago: ${paymentData.id}`);
 
-                                    // Marcar el pago como exitoso para que el frontend pueda consultarlo
-                                    marcarPagoExitoso(clienteId, paymentData.id.toString());
-
-                                    console.log(`🔔 SEÑAL_LIMPIAR_CARRITO: Cliente ${clienteId} completó pago ${paymentData.id}`);
+                                    // El sistema nuevo consulta directamente la base de datos
+                                    console.log(`🔔 PAGO_COMPLETADO: Cliente ${clienteId} completó pago ${paymentData.id}. Sistema nuevo detectará automáticamente.`);
                                 }
                             }
                         } else {

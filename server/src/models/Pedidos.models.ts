@@ -36,7 +36,19 @@ class pedidos extends Model {
 
     @Column({
         type: DataType.DATE,
-        allowNull: false
+        allowNull: false,
+        get() {
+            const rawValue = this.getDataValue('fecha_pedido');
+            return rawValue;
+        },
+        set(value: Date | string) {
+            // Asegurar que se guarde con fecha y hora completa
+            if (typeof value === 'string') {
+                this.setDataValue('fecha_pedido', new Date(value));
+            } else {
+                this.setDataValue('fecha_pedido', value);
+            }
+        }
     })
     fecha_pedido: Date;
 

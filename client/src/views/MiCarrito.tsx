@@ -26,6 +26,7 @@ const MiCarrito: React.FC<MiCarritoProps> = ({ onClose }) => {
     const [enviando, setEnviando] = useState(false);
     const [publicKey, setPublicKey] = useState<string | null>(null);
     const [paymentInProgress, setPaymentInProgress] = useState(false); // Nuevo estado para tracking de pago
+    const [paymentStartTime, setPaymentStartTime] = useState<number | null>(null); // Timestamp de cuando se inició el pago
     const mpButtonRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
@@ -49,18 +50,20 @@ const MiCarrito: React.FC<MiCarritoProps> = ({ onClose }) => {
         getPublicKey();
     }, []);
 
-    // Detectar cuando el usuario vuelve a la pestaña después de un pago
+    // Detectar cuando el usuario vuelve a la pestaña después de un pago O verificar pagos periódicamente
     useEffect(() => {
+        let pollingInterval: number | null = null;
+
         const handleVisibilityChange = () => {
             if (!document.hidden && paymentInProgress) {
                 console.log("Usuario volvió a la pestaña, verificando estado del carrito...");
-                
+
                 // Pequeño delay para asegurar que el webhook se procesó
                 setTimeout(() => {
                     // Verificar si el carrito se vació (señal de pago exitoso)
                     const currentCartSize = carrito.length;
                     console.log("Tamaño actual del carrito:", currentCartSize);
-                    
+
                     // Si había items y ahora está vacío, o si verificamos externamente
                     if (currentCartSize === 0 && paymentInProgress) {
                         console.log("Carrito vacío detectado, recargando página...");
@@ -76,30 +79,84 @@ const MiCarrito: React.FC<MiCarritoProps> = ({ onClose }) => {
 
         const checkRecentPayment = async () => {
             try {
-                const response = await fetch(`http://localhost:4000/api/verificar-pago-reciente/${userId}`);
+                // Buscar pagos desde que se inició el proceso de pago actual
+                // El servidor agregará 30 segundos automáticamente para evitar detección prematura
+                const timestamp = paymentStartTime || Date.now() - 2 * 60 * 1000;
+                console.log(`🔍 Verificando pagos desde timestamp: ${new Date(timestamp).toISOString()}`);
+
+                const response = await fetch(`http://localhost:4000/api/verificar-pago-reciente/${userId}?since=${timestamp}`);
                 if (response.ok) {
                     const data = await response.json();
                     if (data.paymentFound) {
-                        console.log("Pago reciente encontrado, recargando...");
+                        console.log("🎉 Pago reciente encontrado, limpiando carrito y recargando...");
                         setPaymentInProgress(false);
+                        setPaymentStartTime(null);
+
+                        // Limpiar carrito del localStorage usando la clave correcta
+                        if (nombre) {
+                            const carritoKey = `carrito_${nombre}`;
+                            localStorage.removeItem(carritoKey);
+                            console.log(`🧹 Carrito limpiado: ${carritoKey}`);
+                        }
+
+                        // También limpiar la clave genérica por si acaso
+                        localStorage.removeItem('carrito');
+
+                        // Mostrar mensaje de éxito
+                        alert("¡Pago procesado exitosamente! Tu pedido ha sido registrado.");
+
+                        // Recargar la página para mostrar carrito vacío
                         window.location.reload();
+                    } else {
+                        console.log("❌ No se encontraron pagos recientes");
                     }
+                } else {
+                    console.log("Error en la respuesta del servidor");
                 }
             } catch (error) {
                 console.log("Error verificando pago reciente:", error);
-            } finally {
-                // Resetear el estado después de 30 segundos si no se encontró pago
-                setTimeout(() => {
-                    setPaymentInProgress(false);
-                }, 30000);
             }
-        };
+        };        // 🆕 NUEVA FUNCIONALIDAD: Polling para pagos en misma pestaña
+        if (paymentInProgress) {
+            console.log("💡 Iniciando polling para detectar pagos en misma pestaña...");
+
+            // ESPERAR 60 SEGUNDOS antes de empezar a hacer polling (tiempo suficiente para completar pago)
+            const delayTimeout = setTimeout(() => {
+                console.log("⏰ Iniciando polling después del delay de 60 segundos...");
+
+                pollingInterval = setInterval(() => {
+                    console.log("🔍 Verificando pago (polling)...");
+                    checkRecentPayment();
+                }, 5000); // Verificar cada 5 segundos
+            }, 60000); // Esperar 60 segundos antes de empezar
+
+            // También configurar un timeout para resetear después de 5 minutos
+            const resetTimeout = setTimeout(() => {
+                console.log("⏰ Timeout de pago alcanzado, reseteando estado...");
+                setPaymentInProgress(false);
+                if (pollingInterval) {
+                    clearInterval(pollingInterval);
+                }
+            }, 5 * 60 * 1000); // 5 minutos
+
+            // Limpiar timeouts si el componente se desmonta
+            return () => {
+                clearTimeout(delayTimeout);
+                clearTimeout(resetTimeout);
+                if (pollingInterval) {
+                    clearInterval(pollingInterval);
+                }
+            };
+        }
 
         document.addEventListener('visibilitychange', handleVisibilityChange);
 
         // Cleanup
         return () => {
             document.removeEventListener('visibilitychange', handleVisibilityChange);
+            if (pollingInterval) {
+                clearInterval(pollingInterval);
+            }
         };
     }, [paymentInProgress, carrito.length, userId]);
 
@@ -117,9 +174,13 @@ const MiCarrito: React.FC<MiCarritoProps> = ({ onClose }) => {
     const handlePagar = async () => {
         if (carrito.length === 0) return;
         setLoading(true);
+
+        // Establecer timestamp de inicio del pago ANTES de activar tracking
+        const startTime = Date.now();
+        setPaymentStartTime(startTime);
         setPaymentInProgress(true); // Activar tracking de pago
 
-        console.log("Iniciando proceso de pago, activando tracking...");
+        console.log("Iniciando proceso de pago, activando tracking con timestamp:", startTime);
 
         const items = carrito.map(producto => ({
             id: producto.id_producto,
@@ -333,8 +394,8 @@ const MiCarrito: React.FC<MiCarritoProps> = ({ onClose }) => {
                     </div>
                     <div className="mt-4 text-center">
                         <span className={`inline-block px-4 py-2 rounded-lg text-base font-semibold shadow-sm border ${retiroSucursal
-                                ? "bg-green-100 border-green-300 text-green-800"
-                                : "bg-yellow-100 border-yellow-300 text-yellow-800"
+                            ? "bg-green-100 border-green-300 text-green-800"
+                            : "bg-yellow-100 border-yellow-300 text-yellow-800"
                             }`}>
                             {retiroSucursal
                                 ? "✅ Retiro en Sucursal L.N Alem seleccionado"
@@ -365,8 +426,8 @@ const MiCarrito: React.FC<MiCarritoProps> = ({ onClose }) => {
                     disabled={carrito.length === 0 || loading || retiroSucursal}
                     onClick={handlePagar}
                     className={`w-full rounded px-4 py-3 text-sm font-medium text-white transition ${carrito.length > 0 && !retiroSucursal
-                            ? "bg-blue-600 hover:bg-blue-500"
-                            : "bg-gray-400 cursor-not-allowed"
+                        ? "bg-blue-600 hover:bg-blue-500"
+                        : "bg-gray-400 cursor-not-allowed"
                         }`}
                 >
                     {retiroSucursal
@@ -389,8 +450,8 @@ const MiCarrito: React.FC<MiCarritoProps> = ({ onClose }) => {
                     disabled={carrito.length === 0 || !retiroSucursal}
                     onClick={handleDescargarRemito}
                     className={`w-full rounded px-4 py-3 text-sm font-medium border transition ${carrito.length > 0 && retiroSucursal
-                            ? "text-blue-700 border-blue-700 bg-white hover:bg-blue-50"
-                            : "text-gray-400 border-gray-300 bg-gray-50 cursor-not-allowed"
+                        ? "text-blue-700 border-blue-700 bg-white hover:bg-blue-50"
+                        : "text-gray-400 border-gray-300 bg-gray-50 cursor-not-allowed"
                         }`}
                 >
                     {!retiroSucursal
@@ -404,8 +465,8 @@ const MiCarrito: React.FC<MiCarritoProps> = ({ onClose }) => {
                     disabled={carrito.length === 0 || enviando || !retiroSucursal}
                     onClick={handleEnviarRemito}
                     className={`w-full rounded px-4 py-3 text-sm font-medium border transition ${carrito.length > 0 && retiroSucursal
-                            ? "text-green-700 border-green-700 bg-white hover:bg-green-50"
-                            : "text-gray-400 border-gray-300 bg-gray-50 cursor-not-allowed"
+                        ? "text-green-700 border-green-700 bg-white hover:bg-green-50"
+                        : "text-gray-400 border-gray-300 bg-gray-50 cursor-not-allowed"
                         }`}
                 >
                     {!retiroSucursal

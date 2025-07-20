@@ -5,7 +5,19 @@ import dotenv from 'dotenv';
 dotenv.config();
 
 const db = new Sequelize(process.env.DATABASE_URL, {
-    models: [__dirname + '/../models/**/*.ts']
+    models: [__dirname + '/../models/**/*.ts'],
+    timezone: '-03:00', // Zona horaria de Argentina (UTC-3)
+    dialectOptions: {
+        dateStrings: true,
+        typeCast: function (field: any, next: any) {
+            // for reading from database
+            if (field.type === 'DATETIME') {
+                return field.string();
+            }
+            return next();
+        },
+    },
+    logging: console.log // Para ver las consultas SQL
 });
 
 

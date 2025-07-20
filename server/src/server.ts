@@ -51,7 +51,7 @@ server.use('/api', preferencesRouter);
 server.use('/api', routerRemito);
 server.use('/api', routerFactura);
 server.use('/api', paymentVerificationRouter);
-server.use('/api/carrito', carritoRouter);
+// server.use('/api/carrito', carritoRouter); // DESHABILITADO: Usando sistema nuevo
 
 
 
