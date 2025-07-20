@@ -10,7 +10,7 @@ import Productos from "../models/Productos.models";
 import Clientes from "../models/Clientes.models";
 
 const router = Router();
-const SECRET = process.env.JWT_SECRET || "secreto";
+const SECRET = process.env.JWT_SECRET || "clave_secreta";
 
 // Configura tu correo y contraseña de aplicación aquí
 const transporter = nodemailer.createTransport({

@@ -5,7 +5,7 @@ import PDFDocument from "pdfkit";
 import path from "path";
 
 const router = Router();
-const SECRET = process.env.JWT_SECRET || "secreto";
+const SECRET = process.env.JWT_SECRET || "clave_secreta";
 
 // Configura tu correo y contraseña de aplicación aquí
 const transporter = nodemailer.createTransport({
@@ -143,14 +143,22 @@ router.post('/descargar-remito', async (req: Request, res: Response) => {
 
     // 1. Verifica que el usuario esté autenticado
     const authHeader = req.headers.authorization;
+    console.log("🔍 DEBUG - Header de autorización:", authHeader ? "Presente" : "Ausente");
+
     if (!authHeader) return res.status(401).json({ error: 'No autorizado' });
 
     const token = authHeader.split(' ')[1];
+    console.log("🔍 DEBUG - Token extraído:", token ? token.substring(0, 20) + "..." : "No encontrado");
+    console.log("🔍 DEBUG - SECRET utilizado:", SECRET);
+
     let email = "";
     try {
+        // 2. Extrae el email del token JWT
         const decoded = jwt.verify(token, SECRET) as { mail: string };
         email = decoded.mail;
+        console.log("✅ DEBUG - Token válido, email:", email);
     } catch (error) {
+        console.error("❌ DEBUG - Error decodificando token:", error);
         return res.status(401).json({ error: 'Token inválido' });
     }
 

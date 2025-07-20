@@ -3,7 +3,7 @@ import { useCart } from "../components/CotextoCarrito";
 import PerfilCarrito from "../components/PerfilCarrito";
 import { formatCurrency } from "../helpers";
 import { getUserName, getUserId } from "../services/AuthService";
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 
 
 declare global {
@@ -27,7 +27,6 @@ const MiCarrito: React.FC<MiCarritoProps> = ({ onClose }) => {
     const [publicKey, setPublicKey] = useState<string | null>(null);
     const [paymentInProgress, setPaymentInProgress] = useState(false); // Nuevo estado para tracking de pago
     const [paymentStartTime, setPaymentStartTime] = useState<number | null>(null); // Timestamp de cuando se inició el pago
-    const mpButtonRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
         const nombreUsuario = getUserName();
@@ -128,7 +127,7 @@ const MiCarrito: React.FC<MiCarritoProps> = ({ onClose }) => {
                     console.log("🔍 Verificando pago (polling)...");
                     checkRecentPayment();
                 }, 5000); // Verificar cada 5 segundos
-            }, 30000); // Esperar 60 segundos antes de empezar
+            }, 15000); // Esperar 15 segundos antes de empezar
 
             // También configurar un timeout para resetear después de 5 minutos
             const resetTimeout = setTimeout(() => {
@@ -159,13 +158,6 @@ const MiCarrito: React.FC<MiCarritoProps> = ({ onClose }) => {
             }
         };
     }, [paymentInProgress, carrito.length, userId]);
-
-    // Limpia el botón de Mercado Pago al desmontar o cerrar
-    useEffect(() => {
-        return () => {
-            if (mpButtonRef.current) mpButtonRef.current.innerHTML = "";
-        };
-    }, []);
 
     const calcularTotal = () => {
         return carrito.reduce((total, producto) => total + producto.precio_venta * producto.cantidad, 0);
@@ -212,22 +204,31 @@ const MiCarrito: React.FC<MiCarritoProps> = ({ onClose }) => {
             const data = await response.json();
             setLoading(false);
 
-            if (data.id && window.MercadoPago && publicKey) {
-                if (mpButtonRef.current) mpButtonRef.current.innerHTML = "";
-
+            if (data.id && publicKey) {
                 try {
-                    const mp = new window.MercadoPago(publicKey, { locale: "es-AR" });
-                    mp.checkout({
-                        preference: { id: data.id },
-                        render: {
-                            container: ".mp-button",
-                            label: "Pagar con Mercado Pago",
-                        },
-                    });
+                    // 🚀 ABRIR MERCADO PAGO EN NUEVA VENTANA (POPUP)
+                    const checkoutUrl = `https://www.mercadopago.com.ar/checkout/v1/redirect?pref_id=${data.id}`;
+                    console.log("🔗 Abriendo checkout en nueva ventana:", checkoutUrl);
+
+                    // Abrir en nueva ventana popup para mantener la página original
+                    const popup = window.open(
+                        checkoutUrl,
+                        'mercadopago-checkout',
+                        'width=800,height=600,scrollbars=yes,resizable=yes,centerscreen=yes'
+                    );
+
+                    // Opcional: Enfocar la ventana popup si el navegador lo permite
+                    if (popup) {
+                        popup.focus();
+                    } else {
+                        // Si no se pudo abrir popup (bloqueado), usar redirección normal
+                        console.log("Popup bloqueado, usando redirección normal");
+                        window.location.href = checkoutUrl;
+                    }
                 } catch (mpError) {
-                    // Silenciar errores de tracking/analytics de MercadoPago
-                    console.warn("Error de MercadoPago (no crítico):", mpError);
-                    // El botón de pago debería seguir funcionando
+                    console.warn("Error de MercadoPago:", mpError);
+                    setPaymentInProgress(false);
+                    alert("Error al abrir el pago. Intenta nuevamente.");
                 }
             } else {
                 setPaymentInProgress(false); // Desactivar tracking si falla
@@ -252,7 +253,13 @@ const MiCarrito: React.FC<MiCarritoProps> = ({ onClose }) => {
             alert("Debes iniciar sesión para descargar el remito.");
             return;
         }
+
+        // 🔍 DEBUG: Verificar el token
+        console.log("🔑 Token encontrado:", token ? "Sí" : "No");
+        console.log("🔑 Primeros caracteres del token:", token ? token.substring(0, 20) + "..." : "N/A");
+
         try {
+            console.log("📄 Enviando solicitud de descarga de remito...");
             const response = await fetch("http://localhost:4000/api/descargar-remito", {
                 method: "POST",
                 headers: {
@@ -266,7 +273,22 @@ const MiCarrito: React.FC<MiCarritoProps> = ({ onClose }) => {
                     total: calcularTotal()
                 }),
             });
-            if (!response.ok) throw new Error("No se pudo descargar el remito.");
+
+            console.log("📄 Respuesta del servidor:", response.status, response.statusText);
+
+            if (!response.ok) {
+                const errorText = await response.text();
+                console.error("❌ Error del servidor:", errorText);
+
+                // Si es error 401, sugerir relogin
+                if (response.status === 401) {
+                    alert("Tu sesión ha expirado. Por favor, cierra sesión y vuelve a iniciar sesión.");
+                    return;
+                }
+
+                throw new Error(`Error del servidor: ${response.status} - ${errorText}`);
+            }
+
             const blob = await response.blob();
             const url = window.URL.createObjectURL(blob);
             const a = document.createElement("a");
@@ -276,8 +298,24 @@ const MiCarrito: React.FC<MiCarritoProps> = ({ onClose }) => {
             a.click();
             a.remove();
             window.URL.revokeObjectURL(url);
+
+            console.log("✅ Remito descargado exitosamente");
+
+            // 🧹 Limpiar carrito después de generar remito exitosamente
+            if (nombre) {
+                const carritoKey = `carrito_${nombre}`;
+                localStorage.removeItem(carritoKey);
+                console.log(`🧹 Carrito limpiado después de descargar remito: ${carritoKey}`);
+            }
+            // También limpiar la clave genérica por si acaso
+            localStorage.removeItem('carrito');
+
+            // Mostrar mensaje de éxito y recargar
+            alert("¡Remito descargado exitosamente! Tu pedido ha sido procesado.");
+            window.location.reload();
         } catch (error) {
-            alert("Error al descargar el remito.");
+            console.error("❌ Error completo:", error);
+            alert(`Error al descargar el remito: ${error}`);
         }
     };
 
@@ -291,6 +329,12 @@ const MiCarrito: React.FC<MiCarritoProps> = ({ onClose }) => {
                 setEnviando(false);
                 return;
             }
+
+            // 🔍 DEBUG: Verificar el token
+            console.log("� Token encontrado:", token ? "Sí" : "No");
+            console.log("🔑 Primeros caracteres del token:", token ? token.substring(0, 20) + "..." : "N/A");
+
+            console.log("�📧 Enviando solicitud de remito por email...");
             const response = await fetch("http://localhost:4000/api/enviar-remito", {
                 method: "POST",
                 headers: {
@@ -304,188 +348,229 @@ const MiCarrito: React.FC<MiCarritoProps> = ({ onClose }) => {
                     total: calcularTotal()
                 }),
             });
-            if (!response.ok) throw new Error("No se pudo enviar el remito.");
-            alert("Remito enviado por email correctamente.");
+
+            console.log("📧 Respuesta del servidor:", response.status, response.statusText);
+
+            if (!response.ok) {
+                const errorText = await response.text();
+                console.error("❌ Error del servidor:", errorText);
+
+                // Si es error 401, sugerir relogin
+                if (response.status === 401) {
+                    alert("Tu sesión ha expirado. Por favor, cierra sesión y vuelve a iniciar sesión.");
+                    setEnviando(false);
+                    return;
+                }
+
+                throw new Error(`Error del servidor: ${response.status} - ${errorText}`);
+            }
+
+            const result = await response.json();
+            console.log("✅ Respuesta exitosa:", result);
+
+            // 🧹 Limpiar carrito después de enviar remito exitosamente
+            if (nombre) {
+                const carritoKey = `carrito_${nombre}`;
+                localStorage.removeItem(carritoKey);
+                console.log(`🧹 Carrito limpiado después de enviar remito: ${carritoKey}`);
+            }
+            // También limpiar la clave genérica por si acaso
+            localStorage.removeItem('carrito');
+
+            alert("¡Remito enviado por email correctamente! Tu pedido ha sido procesado.");
+
+            // Recargar página para mostrar carrito vacío
+            window.location.reload();
         } catch (error) {
-            alert("Error al enviar el remito por email.");
+            console.error("❌ Error completo:", error);
+            alert(`Error al enviar el remito por email: ${error}`);
         }
         setEnviando(false);
     };
 
     return (
         <div
-            className="relative max-w-lg mx-auto mt-20 w-full border border-gray-400 rounded-lg bg-white shadow-lg px-6 py-10"
+            className="relative max-w-lg mx-auto mt-20 w-full border border-gray-400 rounded-lg bg-white shadow-lg overflow-hidden"
+            style={{ maxHeight: '90vh' }}
             aria-modal="true"
             role="dialog"
             tabIndex={-1}
         >
-            <button
-                onClick={() => {
-                    if (mpButtonRef.current) mpButtonRef.current.innerHTML = "";
-                    onClose();
-                }}
-                className="absolute top-4 right-4 text-gray-600 transition duration-300 hover:text-red-600"
-                title="Cerrar"
-            >
-                <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    strokeWidth="1.5"
-                    stroke="currentColor"
-                    className="w-6 h-6"
-                >
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-                </svg>
-            </button>
+            {/* Todo el contenido con scroll */}
+            <div className="overflow-y-auto" style={{ maxHeight: '90vh' }}>
+                {/* Header del modal */}
+                <div className="flex justify-between items-center p-6 border-b bg-white">
+                    <h2 className="text-xl font-bold text-gray-800">
+                        {carrito.length === 0 ? `Hola ${nombre}!` : `Hola ${nombre}! (${carrito.length} ${carrito.length === 1 ? 'producto' : 'productos'})`}
+                    </h2>
+                    <button
+                        onClick={() => {
+                            onClose();
+                        }}
+                        className="text-gray-600 transition duration-300 hover:text-red-600"
+                        title="Cerrar"
+                    >
+                        <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            strokeWidth="1.5"
+                            stroke="currentColor"
+                            className="w-6 h-6"
+                        >
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                    </button>
+                </div>
 
-            {carrito.length === 0 ? (
-                <>
-                    <div>
-                        <p className="text-center text-3xl font-bold tracking-tight text-blue-500 mb-2">Hola {nombre}!</p>
-                    </div>
-                    <p className="text-center text-xl font-bold text-gray-800">Tu carrito está vacío</p>
-                </>
-            ) : (
-                <>
-                    <p className="text-center">
-                        <span className="text-xl text-blue-700">Hola {nombre}!</span> Estos son tus productos seleccionados
-                    </p>
+                {/* Contenido principal */}
+                <div className="px-6 py-4">
+                    {carrito.length === 0 ? (
+                        <p className="text-center text-xl font-bold text-gray-800">Tu carrito está vacío</p>
+                    ) : (
+                        <>
+                            <p className="text-center mb-4">
+                                Estos son tus productos seleccionados
+                            </p>
 
-                    {/* Selección de retiro SOLO si hay productos */}
-                    <div className="mb-6">
-                        <label className="block font-semibold mb-3 text-gray-700">Opciones de compra</label>
-                        <div className="space-y-3">
-                            <label className="flex items-center p-3 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
-                                <input
-                                    type="checkbox"
-                                    checked={retiroSucursal}
-                                    onChange={(e) => {
-                                        setRetiroSucursal(e.target.checked);
-                                        // Si se marca el checkbox, forzamos retiro = "sucursal"
-                                        if (e.target.checked) {
-                                            setRetiro("sucursal");
-                                        }
-                                    }}
-                                    className="mr-3 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-                                />
-                                <div>
-                                    <span className="text-gray-800 font-medium">Retiro en Sucursal L.N Alem</span>
-                                    <p className="text-sm text-gray-600">
-                                        Selecciona para retirar en sucursal y generar remito
-                                    </p>
-                                </div>
-                            </label>
+                            {/* Selección de retiro SOLO si hay productos */}
+                            <div className="mb-6">
+                                <label className="block font-semibold mb-3 text-gray-700">Opciones de compra</label>
+                                <div className="space-y-3">
+                                    <label className="flex items-center p-3 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
+                                        <input
+                                            type="checkbox"
+                                            checked={retiroSucursal}
+                                            onChange={(e) => {
+                                                setRetiroSucursal(e.target.checked);
+                                                if (e.target.checked) {
+                                                    setRetiro("sucursal");
+                                                }
+                                            }}
+                                            className="mr-3 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                                        />
+                                        <div>
+                                            <span className="text-gray-800 font-medium">Retiro en Sucursal L.N Alem</span>
+                                            <p className="text-sm text-gray-600">
+                                                Selecciona para retirar en sucursal y generar remito
+                                            </p>
+                                        </div>
+                                    </label>
 
-                            <div className="text-sm text-gray-500 italic ml-7">
-                                💡 Con retiro en sucursal puedes descargar o enviar remito por email
-                            </div>
-                        </div>
-                    </div>
-
-                    {carrito.map((producto) => (
-                        <div key={producto.id_producto}>
-                            <PerfilCarrito producto={producto} />
-                        </div>
-                    ))}
-                    <div className="mt-6 flex justify-between items-center border-t pt-4">
-                        <span className="text-lg font-semibold">Total:</span>
-                        <span className="text-lg font-semibold">{formatCurrency(calcularTotal())}</span>
-                    </div>
-                    <div className="mt-4 text-center">
-                        <span className={`inline-block px-4 py-2 rounded-lg text-base font-semibold shadow-sm border ${retiroSucursal
-                            ? "bg-green-100 border-green-300 text-green-800"
-                            : "bg-yellow-100 border-yellow-300 text-yellow-800"
-                            }`}>
-                            {retiroSucursal
-                                ? "✅ Retiro en Sucursal L.N Alem seleccionado"
-                                : "⚠️ Selecciona retiro en sucursal para opciones de remito"}
-                        </span>
-                    </div>
-
-                    {/* Indicador de pago en progreso */}
-                    {paymentInProgress && (
-                        <div className="mt-4 text-center">
-                            <div className="inline-block bg-blue-100 border border-blue-300 text-blue-800 px-4 py-2 rounded-lg text-sm font-medium shadow-sm">
-                                <div className="flex items-center justify-center space-x-2">
-                                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-800"></div>
-                                    <span>🔄 Esperando confirmación de pago...</span>
-                                </div>
-                                <div className="text-xs mt-1 text-blue-600">
-                                    El carrito se actualizará automáticamente cuando regreses de Mercado Pago
+                                    <div className="text-sm text-gray-500 italic ml-7">
+                                        💡 Con retiro en sucursal puedes descargar o enviar remito por email
+                                    </div>
                                 </div>
                             </div>
-                        </div>
+
+                            {carrito.map((producto) => (
+                                <div key={producto.id_producto}>
+                                    <PerfilCarrito producto={producto} />
+                                </div>
+                            ))}
+
+                            <div className="mt-6 flex justify-between items-center border-t pt-4">
+                                <span className="text-lg font-semibold">Total:</span>
+                                <span className="text-lg font-semibold">{formatCurrency(calcularTotal())}</span>
+                            </div>
+
+                            <div className="mt-4 text-center">
+                                <span className={`inline-block px-4 py-2 rounded-lg text-base font-semibold shadow-sm border ${retiroSucursal
+                                    ? "bg-green-100 border-green-300 text-green-800"
+                                    : "bg-yellow-100 border-yellow-300 text-yellow-800"
+                                    }`}>
+                                    {retiroSucursal
+                                        ? "✅ Retiro en Sucursal L.N Alem seleccionado"
+                                        : "⚠️ Selecciona retiro en sucursal para opciones de remito"}
+                                </span>
+                            </div>
+
+                            {/* Indicador de pago en progreso */}
+                            {paymentInProgress && (
+                                <div className="mt-4 text-center">
+                                    <div className="inline-block bg-blue-100 border border-blue-300 text-blue-800 px-4 py-2 rounded-lg text-sm font-medium shadow-sm">
+                                        <div className="flex items-center justify-center space-x-2">
+                                            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-800"></div>
+                                            <span>🔄 Esperando confirmación de pago...</span>
+                                        </div>
+                                        <div className="text-xs mt-1 text-blue-600">
+                                            El carrito se actualizará automáticamente cuando regreses de Mercado Pago
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
+                        </>
                     )}
-                </>
-            )}
+                </div>
 
-            <div className="space-y-4 text-center mt-6">
-                {/* Botón de Mercado Pago - Se deshabilita si se selecciona retiro en sucursal */}
-                <button
-                    disabled={carrito.length === 0 || loading || retiroSucursal}
-                    onClick={handlePagar}
-                    className={`w-full rounded px-4 py-3 text-sm font-medium text-white transition ${carrito.length > 0 && !retiroSucursal
-                        ? "bg-blue-600 hover:bg-blue-500"
-                        : "bg-gray-400 cursor-not-allowed"
-                        }`}
-                >
-                    {retiroSucursal
-                        ? "Pago online no disponible con retiro en sucursal"
-                        : loading ? "Cargando..." : "Pagar con Mercado Pago"
-                    }
-                </button>
+                {/* Botones siempre dentro del área de scroll */}
+                <div className="px-6 py-4 border-t bg-white">
+                    <div className="space-y-4 text-center">
+                        {/* Botón de Mercado Pago - Se deshabilita si se selecciona retiro en sucursal */}
+                        <button
+                            disabled={carrito.length === 0 || loading || retiroSucursal}
+                            onClick={handlePagar}
+                            className={`w-full rounded px-4 py-3 text-sm font-medium text-white transition ${carrito.length > 0 && !retiroSucursal
+                                ? "bg-blue-600 hover:bg-blue-500"
+                                : "bg-gray-400 cursor-not-allowed"
+                                }`}
+                        >
+                            {retiroSucursal
+                                ? "Pago online no disponible con retiro en sucursal"
+                                : loading ? "Cargando..." : "Pagar con Mercado Pago"
+                            }
+                        </button>
 
-                {/* Separador visual */}
-                {retiroSucursal && (
-                    <div className="flex items-center my-4">
-                        <div className="flex-grow border-t border-gray-300"></div>
-                        <span className="px-3 text-sm text-gray-500 bg-white">Opciones de remito</span>
-                        <div className="flex-grow border-t border-gray-300"></div>
+                        {/* Separador visual */}
+                        {retiroSucursal && (
+                            <div className="flex items-center my-4">
+                                <div className="flex-grow border-t border-gray-300"></div>
+                                <span className="px-3 text-sm text-gray-500 bg-white">Opciones de remito</span>
+                                <div className="flex-grow border-t border-gray-300"></div>
+                            </div>
+                        )}
+
+                        {/* Botón descargar remito - Solo habilitado si se selecciona retiro en sucursal */}
+                        <button
+                            disabled={carrito.length === 0 || !retiroSucursal}
+                            onClick={handleDescargarRemito}
+                            className={`w-full rounded px-4 py-3 text-sm font-medium border transition ${carrito.length > 0 && retiroSucursal
+                                ? "text-blue-700 border-blue-700 bg-white hover:bg-blue-50"
+                                : "text-gray-400 border-gray-300 bg-gray-50 cursor-not-allowed"
+                                }`}
+                        >
+                            {!retiroSucursal
+                                ? "📄 Descargar remito (requiere retiro en sucursal)"
+                                : "📄 Descargar remito (PDF)"
+                            }
+                        </button>
+
+                        {/* Botón enviar remito por email - Solo habilitado si se selecciona retiro en sucursal */}
+                        <button
+                            disabled={carrito.length === 0 || enviando || !retiroSucursal}
+                            onClick={handleEnviarRemito}
+                            className={`w-full rounded px-4 py-3 text-sm font-medium border transition ${carrito.length > 0 && retiroSucursal
+                                ? "text-green-700 border-green-700 bg-white hover:bg-green-50"
+                                : "text-gray-400 border-gray-300 bg-gray-50 cursor-not-allowed"
+                                }`}
+                        >
+                            {!retiroSucursal
+                                ? "📧 Enviar remito por email (requiere retiro en sucursal)"
+                                : enviando ? "Enviando..." : "📧 Enviar remito por email"
+                            }
+                        </button>
+
+                        <Link
+                            to={"/"}
+                            onClick={() => {
+                                onClose();
+                            }}
+                            className="inline-block text-sm text-gray-500 underline transition hover:text-gray-600"
+                        >
+                            Continuar comprando
+                        </Link>
                     </div>
-                )}
-
-                {/* Botón descargar remito - Solo habilitado si se selecciona retiro en sucursal */}
-                <button
-                    disabled={carrito.length === 0 || !retiroSucursal}
-                    onClick={handleDescargarRemito}
-                    className={`w-full rounded px-4 py-3 text-sm font-medium border transition ${carrito.length > 0 && retiroSucursal
-                        ? "text-blue-700 border-blue-700 bg-white hover:bg-blue-50"
-                        : "text-gray-400 border-gray-300 bg-gray-50 cursor-not-allowed"
-                        }`}
-                >
-                    {!retiroSucursal
-                        ? "📄 Descargar remito (requiere retiro en sucursal)"
-                        : "📄 Descargar remito (PDF)"
-                    }
-                </button>
-
-                {/* Botón enviar remito por email - Solo habilitado si se selecciona retiro en sucursal */}
-                <button
-                    disabled={carrito.length === 0 || enviando || !retiroSucursal}
-                    onClick={handleEnviarRemito}
-                    className={`w-full rounded px-4 py-3 text-sm font-medium border transition ${carrito.length > 0 && retiroSucursal
-                        ? "text-green-700 border-green-700 bg-white hover:bg-green-50"
-                        : "text-gray-400 border-gray-300 bg-gray-50 cursor-not-allowed"
-                        }`}
-                >
-                    {!retiroSucursal
-                        ? "📧 Enviar remito por email (requiere retiro en sucursal)"
-                        : enviando ? "Enviando..." : "📧 Enviar remito por email"
-                    }
-                </button>
-                {/* Aquí se renderiza el botón de Mercado Pago */}
-                <div ref={mpButtonRef} className="mt-2 mp-button"></div>
-                <Link
-                    to={"/"}
-                    onClick={() => {
-                        if (mpButtonRef.current) mpButtonRef.current.innerHTML = "";
-                        onClose();
-                    }}
-                    className="inline-block text-sm text-gray-500 underline transition hover:text-gray-600"
-                >
-                    Continuar comprando
-                </Link>
+                </div>
             </div>
         </div>
     );
